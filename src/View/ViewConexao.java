@@ -42,8 +42,18 @@ public class ViewConexao extends javax.swing.JFrame {
         LabelPortaServidor.setText("Porta Servidor:");
 
         ButtonConectar.setText("Conectar");
+        ButtonConectar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonConectarActionPerformed(evt);
+            }
+        });
 
         ButtonLimpar.setText("Limpar");
+        ButtonLimpar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonLimparActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -88,6 +98,14 @@ public class ViewConexao extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void ButtonConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonConectarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ButtonConectarActionPerformed
+
+    private void ButtonLimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLimparActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ButtonLimparActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ButtonConectar;

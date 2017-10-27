@@ -45,12 +45,18 @@ public class ViewLogin extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jSpinner1 = new javax.swing.JSpinner();
         LabelLogin = new javax.swing.JLabel();
         TextFieldLogin = new javax.swing.JTextField();
         LabelSenha = new javax.swing.JLabel();
         TextFieldSenha = new javax.swing.JTextField();
         ButtonLoginOK = new javax.swing.JButton();
         ButtonLoginLimpar = new javax.swing.JButton();
+        TextFieldPort = new javax.swing.JTextField();
+        TextFieldIP = new javax.swing.JTextField();
+        LabelPort = new javax.swing.JLabel();
+        LabelServer = new javax.swing.JLabel();
+        LabelTela = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -66,51 +72,89 @@ public class ViewLogin extends javax.swing.JFrame {
         });
 
         ButtonLoginLimpar.setText("Limpar");
+        ButtonLoginLimpar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonLoginLimparActionPerformed(evt);
+            }
+        });
+
+        TextFieldPort.setText("20000");
+
+        TextFieldIP.setText("localhost");
+
+        LabelPort.setText("PORT:");
+
+        LabelServer.setText("SERVER:");
+
+        LabelTela.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        LabelTela.setText("LOGIN");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(LabelLogin)
-                        .addGap(18, 18, 18)
-                        .addComponent(TextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
+                        .addGap(55, 55, 55)
+                        .addComponent(ButtonLoginOK)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(ButtonLoginLimpar)
+                        .addGap(69, 69, 69))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(LabelSenha)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(TextFieldSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(ButtonLoginOK)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(ButtonLoginLimpar)
-                                .addGap(67, 67, 67))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(TextFieldSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE)))))
-                .addContainerGap(15, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(LabelLogin)
+                                    .addComponent(LabelPort))
+                                .addGap(25, 25, 25))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(LabelServer)
+                                .addGap(18, 18, 18)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(TextFieldIP)
+                            .addComponent(TextFieldPort)
+                            .addComponent(TextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(LabelTela)
+                .addGap(142, 142, 142))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {ButtonLoginLimpar, ButtonLoginOK});
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(LabelTela)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(TextFieldIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(LabelServer))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(TextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(LabelPort))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(LabelLogin)
                     .addComponent(TextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(LabelSenha)
-                    .addComponent(TextFieldSenha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(TextFieldSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(LabelSenha))
+                .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(ButtonLoginOK)
                     .addComponent(ButtonLoginLimpar))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(25, 25, 25))
         );
 
         pack();
@@ -121,6 +165,13 @@ public class ViewLogin extends javax.swing.JFrame {
         JSONLogin.put("tipo", 0);
         JSONLogin.put("ra", TextFieldLogin.getText());
         JSONLogin.put("senha", TextFieldSenha.getText());
+        
+        InetAddress host = null;
+        try {
+            host = InetAddress.getByName(TextFieldIP.getText());
+        } catch (UnknownHostException e) {}
+            
+        int serverPort = Integer.parseInt(TextFieldPort.getText());
         
         byte[] buffer = new byte[1024];
         buffer = JSONLogin.toString().getBytes();
@@ -134,6 +185,13 @@ public class ViewLogin extends javax.swing.JFrame {
         System.out.print("mensagem enviada");
     }//GEN-LAST:event_ButtonLoginOKActionPerformed
 
+    private void ButtonLoginLimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLoginLimparActionPerformed
+        TextFieldIP.setText("");
+        TextFieldLogin.setText("");
+        TextFieldPort.setText("");
+        TextFieldSenha.setText("");
+    }//GEN-LAST:event_ButtonLoginLimparActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -145,8 +203,14 @@ public class ViewLogin extends javax.swing.JFrame {
     private javax.swing.JButton ButtonLoginLimpar;
     private javax.swing.JButton ButtonLoginOK;
     private javax.swing.JLabel LabelLogin;
+    private javax.swing.JLabel LabelPort;
     private javax.swing.JLabel LabelSenha;
+    private javax.swing.JLabel LabelServer;
+    private javax.swing.JLabel LabelTela;
+    private javax.swing.JTextField TextFieldIP;
     private javax.swing.JTextField TextFieldLogin;
+    private javax.swing.JTextField TextFieldPort;
     private javax.swing.JTextField TextFieldSenha;
+    private javax.swing.JSpinner jSpinner1;
     // End of variables declaration//GEN-END:variables
 }

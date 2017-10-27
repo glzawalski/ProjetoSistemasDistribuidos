@@ -1,2 +1,2 @@
-{"ra":"1234567","senha":"qwertyu"}
-{"ra":"7654321","senha":"abcdefg"}
+{"ra":"1234567","senha":"qwertyu","nome":"Vithor"}
+{"ra":"7654321","senha":"abcdefg","nome":"Gabriel"}

@@ -1,0 +1,4 @@
+{"id":001,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste""inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
+{}
+{}
+{}

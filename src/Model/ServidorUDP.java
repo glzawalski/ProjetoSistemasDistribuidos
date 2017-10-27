@@ -6,6 +6,7 @@
 package Model;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,11 +22,19 @@ import org.json.JSONObject;
  */
 public class ServidorUDP {
     private static DatagramSocket server = null;
+    private static int qtdSalas = 0;
     
     public static void main(String args[]) throws Exception {
          try {
+             String rooms = "salas.txt",line;             
+             FileReader roomfile = new FileReader(rooms);
+             BufferedReader bufferedReader = new BufferedReader(roomfile);
+             while((line = bufferedReader.readLine()) != null){
+                 ServidorUDP.qtdSalas++;
+             }
+             
              server = new DatagramSocket(20000);
-             System.out.println("server up");
+             System.out.println("server up in: " + server.getLocalPort() + ", com esse numero de salas:" + ServidorUDP.qtdSalas);
              byte[] buffer = new byte[1024];
              while (true) {
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
@@ -65,7 +74,7 @@ public class ServidorUDP {
       }
 
     private static void checarLogin(DatagramPacket request, JSONObject received) {
-        String fileName = "/home/gabriel/NetBeansProjects/ProjetoSD/login.txt";
+        String fileName = "login.txt";
         String line = null;
         try {
             FileReader fileReader = new FileReader(fileName);
@@ -80,8 +89,9 @@ public class ServidorUDP {
                         
                         JSONObject JSONRespostaLoginSucedido = new JSONObject();
                         JSONRespostaLoginSucedido.put("tipo", 2);
-                        JSONRespostaLoginSucedido.put("nome", "");
-                        JSONRespostaLoginSucedido.put("tamanho", 0);
+                        JSONRespostaLoginSucedido.put("nome", user.getString("nome"));
+                        JSONRespostaLoginSucedido.put("tamanho", ServidorUDP.qtdSalas);
+                        
                         
                         buffer = JSONRespostaLoginSucedido.toString().getBytes();
                         
