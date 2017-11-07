@@ -26,14 +26,16 @@ import org.json.JSONObject;
  */
 public class ServidorUDP {
     private static DatagramSocket socketServidor = null;
-    private static int qtdSalas;
-    private static ArrayList<JSONObject> infoSalas = null; 
+    private static int qtdSalas; 
     private int porta;
+    private static ArrayList<JSONObject> infoSalas;
+    private static ArrayList<String> usuariosConectados;
     private DefaultTableModel modeloTabelaSalas;
-    private DefaultTableModel modeloTabelaUsuarios;
+    private static DefaultTableModel modeloTabelaUsuarios;
 
     public ServidorUDP() {
         infoSalas = new ArrayList();
+        usuariosConectados = new ArrayList();
     }
     
     public int getQtdSalas() {
@@ -94,6 +96,22 @@ public class ServidorUDP {
             rowData[3] = infoSalas.get(index).getString("inicio");
             rowData[4] = infoSalas.get(index).getString("fim");
             modeloTabelaSalas.addRow(rowData);
+            index++;
+        }
+    }
+    
+    private static void updateModeloTabelaUsuarios() {
+        String rowData[] = new String[1];
+        int index = 0;
+        if (modeloTabelaUsuarios.getRowCount() > 0) {
+            for (int i = modeloTabelaUsuarios.getRowCount() - 1; i > -1; i--) {
+                modeloTabelaUsuarios.removeRow(i);
+            }
+        }
+
+        while (index < usuariosConectados.size()) {
+            rowData[0] = usuariosConectados.get(index);
+            modeloTabelaUsuarios.addRow(rowData);
             index++;
         }
     }
@@ -191,6 +209,8 @@ public class ServidorUDP {
                         buffer = JSONRespostaLoginSucedido.toString().getBytes();
                         DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                         socketServidor.send(reply);
+                        usuariosConectados.add(user.getString("nome"));
+                        updateModeloTabelaUsuarios();
                         streamSalas(request.getAddress(), request.getPort());
                         break;
                     } else {
