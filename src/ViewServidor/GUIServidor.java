@@ -13,7 +13,8 @@ import javax.swing.table.DefaultTableModel;
  * @author gabriel
  */
 public class GUIServidor extends JFrame {
-    private DefaultTableModel modelo_tabela;
+    private DefaultTableModel modeloTabelaSalas;
+    private DefaultTableModel modeloTabelaUsuarios;
     private ServidorUDP servidor;
 
     /**
@@ -35,8 +36,10 @@ public class GUIServidor extends JFrame {
         labelPorta = new javax.swing.JLabel();
         textfieldPorta = new javax.swing.JTextField();
         buttonConfirmar = new javax.swing.JButton();
-        paneLista = new javax.swing.JScrollPane();
+        paneSalas = new javax.swing.JScrollPane();
         tabelaSalas = new javax.swing.JTable();
+        paneUsuarios = new javax.swing.JScrollPane();
+        tabelaUsuarios = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -53,33 +56,51 @@ public class GUIServidor extends JFrame {
 
         tabelaSalas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {},
+                {},
+                {},
+                {}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+
             }
         ));
-        paneLista.setViewportView(tabelaSalas);
+        paneSalas.setViewportView(tabelaSalas);
+
+        tabelaUsuarios.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {},
+                {},
+                {},
+                {}
+            },
+            new String [] {
+
+            }
+        ));
+        paneUsuarios.setViewportView(tabelaUsuarios);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
                         .addComponent(labelPorta)
                         .addGap(18, 18, 18)
-                        .addComponent(textfieldPorta, javax.swing.GroupLayout.DEFAULT_SIZE, 326, Short.MAX_VALUE))
+                        .addComponent(textfieldPorta, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(140, 140, 140)
-                        .addComponent(buttonConfirmar)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(paneLista, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(225, 225, 225)
+                                .addComponent(buttonConfirmar)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)))
+                        .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -92,7 +113,9 @@ public class GUIServidor extends JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(buttonConfirmar)
                 .addGap(18, 18, 18)
-                .addComponent(paneLista, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(paneSalas, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -100,16 +123,26 @@ public class GUIServidor extends JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonConfirmarActionPerformed
-        // pega valor da porta do textfield
-        // inicia um servidor
-        // inicia modelo de tabela
+        servidor = new ServidorUDP();
+        servidor.setPorta(Integer.parseInt(textfieldPorta.getText()));
+        servidor.init();
+        modeloTabelaSalas = servidor.getModeloTabelaSalas();
+        modeloTabelaUsuarios = servidor.getModeloTabelaUsuarios();
+        tabelaSalas.setModel(modeloTabelaSalas);
+        tabelaUsuarios.setModel(modeloTabelaUsuarios);
     }//GEN-LAST:event_buttonConfirmarActionPerformed
 
+    public void disableButtonConfirmar() {
+        buttonConfirmar.setEnabled(false);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton buttonConfirmar;
+    public static javax.swing.JButton buttonConfirmar;
     private javax.swing.JLabel labelPorta;
-    private javax.swing.JScrollPane paneLista;
+    private javax.swing.JScrollPane paneSalas;
+    private javax.swing.JScrollPane paneUsuarios;
     private javax.swing.JTable tabelaSalas;
+    private javax.swing.JTable tabelaUsuarios;
     private javax.swing.JTextField textfieldPorta;
     // End of variables declaration//GEN-END:variables
 }
