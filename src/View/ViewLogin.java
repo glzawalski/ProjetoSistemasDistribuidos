@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package View;
+package ViewCliente;
 
+import Model.ModelCliente;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,25 +16,29 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.table.DefaultTableModel;
 import org.json.*;
 /**
  *
  * @author gabriel
  */
-public class ViewLogin extends javax.swing.JFrame {
+public class ViewLogin extends JFrame {
 
-    private final DatagramSocket socketCliente;
-    private final int serverPort;
-    private final InetAddress host;
+    private DefaultTableModel modeloTabelaSalas;
+    private DefaultTableModel modeloTabelaUsuarios;
+    private ModelCliente cliente;
+    private int serverPort;
+    private InetAddress host;
+    private DatagramSocket socketCliente;
+    private ViewPrincipal viewprincipal;
 
     /**
      * Creates new form ViewLogin
      */
-    public ViewLogin(DatagramSocket socketCliente, InetAddress host, int serverPort) {
+    public ViewLogin() throws InterruptedException, UnknownHostException {
+        beginStuff();
         initComponents();
-        this.socketCliente = socketCliente;
-        this.serverPort = serverPort;
-        this.host = host;
     }
 
     /**
@@ -161,28 +166,18 @@ public class ViewLogin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void ButtonLoginOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLoginOKActionPerformed
-        JSONObject JSONLogin = new JSONObject();
-        JSONLogin.put("tipo", 0);
-        JSONLogin.put("ra", TextFieldLogin.getText());
-        JSONLogin.put("senha", TextFieldSenha.getText());
-        
-        InetAddress host = null;
         try {
-            host = InetAddress.getByName(TextFieldIP.getText());
-        } catch (UnknownHostException e) {}
-            
-        int serverPort = Integer.parseInt(TextFieldPort.getText());
-        
-        byte[] buffer = new byte[1024];
-        buffer = JSONLogin.toString().getBytes();
-        
-        DatagramPacket msgLogin = new DatagramPacket(buffer, buffer.length, host, serverPort);
-        try {
-            socketCliente.send(msgLogin);
-        } catch (IOException ex) {
+            cliente.setHost(InetAddress.getByName(TextFieldIP.getText()));
+        } catch (UnknownHostException ex) {
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.print("mensagem enviada");
+        cliente.setPorta(Integer.parseInt(TextFieldPort.getText()));
+        cliente.setSenha(TextFieldSenha.getText());
+        cliente.setLogin(TextFieldLogin.getText());
+        cliente.fazerLogin();
+        
+        this.setVisible(false);
+        viewprincipal.setVisible(true);
     }//GEN-LAST:event_ButtonLoginOKActionPerformed
 
     private void ButtonLoginLimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLoginLimparActionPerformed
@@ -192,11 +187,11 @@ public class ViewLogin extends javax.swing.JFrame {
         TextFieldSenha.setText("");
     }//GEN-LAST:event_ButtonLoginLimparActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
+    private void beginStuff() throws UnknownHostException, InterruptedException{        
+        viewprincipal = new ViewPrincipal();
         
+        cliente = new ModelCliente(viewprincipal);
+        cliente.init();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

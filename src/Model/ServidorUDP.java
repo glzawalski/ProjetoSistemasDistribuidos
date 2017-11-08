@@ -94,8 +94,8 @@ public class ServidorUDP {
             rowData[0] = infoSalas.get(index).getInt("id");
             rowData[1] = infoSalas.get(index).getString("criador");
             rowData[2] = infoSalas.get(index).getString("descricao");
-            rowData[3] = infoSalas.get(index).getString("inicio");
-            rowData[4] = infoSalas.get(index).getString("fim");
+            rowData[3] = Long.toString(infoSalas.get(index).getLong("inicio"));
+            rowData[4] = Long.toString(infoSalas.get(index).getLong("fim"));
             modeloTabelaSalas.addRow(rowData);
             index++;
         }
