@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -247,7 +248,8 @@ public class ModelCliente extends Thread {
         JSONObject JSONLogin = new JSONObject();
         JSONLogin.put("tipo", 0);
         JSONLogin.put("ra", login);
-        JSONLogin.put("senha", sha256(senha));
+        //JSONLogin.put("senha", sha256(senha));
+        JSONLogin.put("senha", senha);
         
         byte[] buffer = new byte[1024];
         buffer = JSONLogin.toString().getBytes();
@@ -264,7 +266,19 @@ public class ModelCliente extends Thread {
     public void fazerLogout(){
         JSONObject JSONLogout = new JSONObject();
         JSONLogout.put("tipo", 10);
-        JSONLogout.put("nome", username);
+        
+        byte[] buffer = new byte[1024];
+        buffer = JSONLogout.toString().getBytes();
+        
+        DatagramPacket msgLogout = new DatagramPacket(buffer,buffer.length, host, porta);
+        
+        try{
+            socketCliente.send(msgLogout);
+        } catch(IOException ex){
+            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        GUICliente.logout();
     }
     
     private static void loginErrado(){
@@ -280,8 +294,10 @@ public class ModelCliente extends Thread {
     public void criarSala(String nome,String desc){
         JSONObject JSONSala = new JSONObject();
         JSONSala.put("tipo", 3);
+        JSONSala.put("nome", nome);
         JSONSala.put("descricao", desc);
-        JSONSala.put("criador", username);
+        JSONSala.put("fim", "Tempo!");
+        JSONSala.put("opcoes", "hi");
         
         byte[] buffer = new byte[1024];
         buffer = JSONSala.toString().getBytes();

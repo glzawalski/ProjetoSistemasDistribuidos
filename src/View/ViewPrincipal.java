@@ -38,6 +38,7 @@ public class ViewPrincipal extends JFrame {
         LabelUser = new javax.swing.JLabel();
         buttonLogout = new javax.swing.JButton();
         buttonCriarSala = new javax.swing.JButton();
+        deslogado = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -71,20 +72,26 @@ public class ViewPrincipal extends JFrame {
             }
         });
 
+        deslogado.setFont(new java.awt.Font("Comic Sans MS", 1, 18)); // NOI18N
+        deslogado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        deslogado.setText("DESCONECTADO");
+        deslogado.setEnabled(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(22, 22, 22)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(buttonCriarSala)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                         .addGroup(layout.createSequentialGroup()
                             .addComponent(LabelUser, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(buttonLogout))
-                        .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(buttonCriarSala)
+                    .addComponent(deslogado, javax.swing.GroupLayout.PREFERRED_SIZE, 425, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(28, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -95,10 +102,12 @@ public class ViewPrincipal extends JFrame {
                     .addComponent(LabelUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(buttonLogout, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonCriarSala, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
+                .addComponent(buttonCriarSala, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(23, 23, 23)
                 .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(42, 42, 42))
+                .addGap(26, 26, 26)
+                .addComponent(deslogado)
+                .addContainerGap())
         );
 
         pack();
@@ -106,7 +115,7 @@ public class ViewPrincipal extends JFrame {
 
     private void buttonLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonLogoutActionPerformed
         cliente.fazerLogout();
-        JOptionPane.showMessageDialog(null, "Logout executado", "Logout", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, "Logout executado.", "Logout", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_buttonLogoutActionPerformed
 
     private void buttonCriarSalaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCriarSalaActionPerformed
@@ -122,10 +131,18 @@ public class ViewPrincipal extends JFrame {
         tabelaSalas.setModel(modeloTabelaSalas);
     }
     
+    public void logout(){
+        buttonCriarSala.setEnabled(false);
+        buttonLogout.setEnabled(false);
+        tabelaSalas.setEnabled(false);
+        deslogado.setEnabled(true);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel LabelUser;
     private javax.swing.JButton buttonCriarSala;
     private javax.swing.JButton buttonLogout;
+    private javax.swing.JLabel deslogado;
     private javax.swing.JScrollPane paneSalas;
     private javax.swing.JTable tabelaSalas;
     // End of variables declaration//GEN-END:variables
