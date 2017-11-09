@@ -16,6 +16,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -273,7 +275,7 @@ public class ServidorUDP {
             }
         }
         received.put("criador", nomeCriador);
-        received.put("inicio", "agora no tempo do servidor");
+        received.put("inicio", Instant.now().getEpochSecond());
         received.put("status", true);
         received.put("mensagens", 0);
         try {
@@ -294,6 +296,26 @@ public class ServidorUDP {
             } catch (IOException ex) {
                     Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+    }
+    
+    public static String sha256(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

@@ -1,7 +1,7 @@
 package Main;
 
-import ViewCliente.ViewLogin;
-import ViewCliente.ViewPrincipal;
+import View.ViewLogin;
+import View.ViewPrincipal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 

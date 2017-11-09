@@ -6,8 +6,8 @@
 package Model;
 
 import ViewCliente.ViewConexao;
-import ViewCliente.ViewLogin;
-import ViewCliente.ViewPrincipal;
+import View.ViewLogin;
+import View.ViewPrincipal;
 import java.awt.GridBagLayout;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -18,6 +18,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +40,7 @@ public class ModelCliente extends Thread {
     private static int qtdSalas; 
     private int porta;
     private InetAddress host;
-    private String senha, login;
+    private String senha, login, username;
     private static ArrayList<JSONObject> infoSalas;
     private static ArrayList<String> usuariosConectados;
     private static DefaultTableModel modeloTabelaSalas;
@@ -92,6 +95,14 @@ public class ModelCliente extends Thread {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
     
     public void setPorta(int aPorta) {
@@ -236,7 +247,7 @@ public class ModelCliente extends Thread {
         JSONObject JSONLogin = new JSONObject();
         JSONLogin.put("tipo", 0);
         JSONLogin.put("ra", login);
-        JSONLogin.put("senha", senha);
+        JSONLogin.put("senha", sha256(senha));
         
         byte[] buffer = new byte[1024];
         buffer = JSONLogin.toString().getBytes();
@@ -250,12 +261,37 @@ public class ModelCliente extends Thread {
         System.out.print("mensagem enviada");
     }
     
+    public void fazerLogout(){
+        JSONObject JSONLogout = new JSONObject();
+        JSONLogout.put("tipo", 10);
+        JSONLogout.put("nome", username);
+    }
+    
     private static void loginErrado(){
         JOptionPane.showMessageDialog(null, "Erro de login", "Erro", JOptionPane.ERROR_MESSAGE);
     }
     
-    private static void loginSucedido(JSONObject login){
-        JOptionPane.showMessageDialog(null, "Login Sucedido", "", JOptionPane.INFORMATION_MESSAGE);
+    private void loginSucedido(JSONObject login){
+        JOptionPane.showMessageDialog(null, login, "Login Sucedido", JOptionPane.INFORMATION_MESSAGE);
+        setUsername(login.getString("nome"));
+        GUICliente.atualizarUser(username);
+    }
+    
+    public void criarSala(String nome,String desc){
+        JSONObject JSONSala = new JSONObject();
+        JSONSala.put("tipo", 3);
+        JSONSala.put("descricao", desc);
+        JSONSala.put("criador", username);
+        
+        byte[] buffer = new byte[1024];
+        buffer = JSONSala.toString().getBytes();
+        
+        DatagramPacket msgCriarSala = new DatagramPacket(buffer, buffer.length, host, porta);
+        try {
+            socketCliente.send(msgCriarSala);
+        } catch (IOException ex) {
+            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     private static void respostaAcessoSala(JSONObject sala){
@@ -264,5 +300,25 @@ public class ModelCliente extends Thread {
         qtdSalas = qtdSalas + 1;
         updateModeloTabelaSalas();
         GUICliente.atualizarListaSalas(modeloTabelaSalas);
+    }
+    
+    public static String sha256(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ViewCliente;
+package View;
 
 import Model.ModelCliente;
 import java.io.BufferedReader;
@@ -192,6 +192,7 @@ public class ViewLogin extends JFrame {
         
         cliente = new ModelCliente(viewprincipal);
         cliente.init();
+        viewprincipal.setCliente(cliente);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

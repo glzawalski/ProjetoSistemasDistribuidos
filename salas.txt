@@ -1,6 +1,6 @@
-{"id":001,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
-{"id":002,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
-{"id":003,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"Gabriel","inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
-{"id":004,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
-{"id":007,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"unix timestamp","fim": "unix timestamp","status":true,"mensagens":666}
-{"id":012,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"timestamp","fim": "unix timestamp","status":true,"mensagens":666}
+{"id":001,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":002,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":003,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"Gabriel","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":004,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":007,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":012,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
