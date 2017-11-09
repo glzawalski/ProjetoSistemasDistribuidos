@@ -1,6 +1,10 @@
-{"id":001,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
-{"id":002,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
-{"id":003,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"Gabriel","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
-{"id":004,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
-{"id":007,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
-{"id":012,"nome":"Sala Teste","descricao": "descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim": "1510140604","status":true,"mensagens":666}
+{"id":001,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"id":002,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"id":003,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"Gabriel","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"id":004,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"id":007,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"id":012,"nome":"Sala Teste","descricao":"descrição do que será votado e tal","criador":"TEste","inicio":"1510140604","fim":"1510140604","status":true,"mensagens":666}
+{"criador":"Vithor","inicio":"1510233049","id":7,"fim":"1510233049","mensagens":0,"descricao":"1234","status":true}
+{"criador":"Vithor","inicio":"1510233055","id":8,"fim":"1510233055","mensagens":0,"descricao":"12345","status":true}
+{"criador":"Gabriel","inicio":"1510233336","id":9,"fim":"1510233336","mensagens":0,"descricao":"asdfg","status":true}
+{"criador":"Gabriel","inicio":"1510233458","id":10,"fim":"1510233458","mensagens":0,"descricao":"lolololol","status":true}
