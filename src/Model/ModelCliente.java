@@ -189,7 +189,7 @@ public class ModelCliente extends Thread {
                         socketCliente.receive(request);
                         String received = new String(request.getData(),0,request.getLength());
                         JSONObject JSONReceived = new JSONObject(received);
-                        System.out.println(JSONReceived);
+                        System.out.println("Mensagem recebida: " + JSONReceived);
                         Integer tipo = JSONReceived.getInt("tipo");
                         switch (tipo) {
                             /*case -2: ping(); break;
@@ -248,8 +248,8 @@ public class ModelCliente extends Thread {
         JSONObject JSONLogin = new JSONObject();
         JSONLogin.put("tipo", 0);
         JSONLogin.put("ra", login);
-        //JSONLogin.put("senha", sha256(senha));
-        JSONLogin.put("senha", senha);
+        JSONLogin.put("senha", sha256(senha));
+        //JSONLogin.put("senha", senha);
         
         byte[] buffer = new byte[1024];
         buffer = JSONLogin.toString().getBytes();
@@ -260,7 +260,7 @@ public class ModelCliente extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.print("mensagem enviada");
+        System.out.print("mensagem enviada: " + JSONLogin);
     }
     
     public void fazerLogout(){

@@ -45,7 +45,7 @@ public class GUIServidor extends JFrame {
 
         labelPorta.setText("Porta:");
 
-        textfieldPorta.setText("Digite a porta para iniciar o servidor");
+        textfieldPorta.setText("20000");
 
         buttonConfirmar.setText("Confirmar");
         buttonConfirmar.addActionListener(new java.awt.event.ActionListener() {
@@ -86,20 +86,20 @@ public class GUIServidor extends JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(labelPorta)
                         .addGap(18, 18, 18)
-                        .addComponent(textfieldPorta, javax.swing.GroupLayout.DEFAULT_SIZE, 538, Short.MAX_VALUE))
+                        .addComponent(textfieldPorta, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 472, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(225, 225, 225)
-                        .addComponent(buttonConfirmar)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(48, 48, 48)
+                        .addComponent(buttonConfirmar))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGap(14, 14, 14)
+                        .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -107,13 +107,12 @@ public class GUIServidor extends JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(labelPorta)
-                    .addComponent(textfieldPorta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(buttonConfirmar)
+                    .addComponent(textfieldPorta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonConfirmar))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(paneSalas, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE))
+                    .addComponent(paneSalas, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
+                    .addComponent(paneUsuarios, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -129,10 +128,6 @@ public class GUIServidor extends JFrame {
         tabelaSalas.setModel(modeloTabelaSalas);
         tabelaUsuarios.setModel(modeloTabelaUsuarios);
     }//GEN-LAST:event_buttonConfirmarActionPerformed
-
-    public void disableButtonConfirmar() {
-        buttonConfirmar.setEnabled(false);
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public static javax.swing.JButton buttonConfirmar;
@@ -141,6 +136,6 @@ public class GUIServidor extends JFrame {
     private javax.swing.JScrollPane paneUsuarios;
     private javax.swing.JTable tabelaSalas;
     private javax.swing.JTable tabelaUsuarios;
-    private javax.swing.JTextField textfieldPorta;
+    public static javax.swing.JTextField textfieldPorta;
     // End of variables declaration//GEN-END:variables
 }
