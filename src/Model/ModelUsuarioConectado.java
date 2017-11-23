@@ -13,11 +13,13 @@ import java.net.InetAddress;
  */
 public class ModelUsuarioConectado {
     private String nome;
+    private String ra;
     private InetAddress endrecoIP;
     private int porta;
 
-    public ModelUsuarioConectado(String nome, InetAddress enderecoIP, int porta) {
+    public ModelUsuarioConectado(String nome, String ra, InetAddress enderecoIP, int porta) {
         this.nome = nome;
+        this.ra = ra;
         this.endrecoIP = enderecoIP;
         this.porta = porta;
     }
@@ -44,5 +46,19 @@ public class ModelUsuarioConectado {
 
     public void setPorta(int porta) {
         this.porta = porta;
+    }
+
+    /**
+     * @return the ra
+     */
+    public String getRa() {
+        return ra;
+    }
+
+    /**
+     * @param ra the ra to set
+     */
+    public void setRa(String ra) {
+        this.ra = ra;
     }
 }

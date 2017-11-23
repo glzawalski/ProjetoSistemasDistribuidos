@@ -78,7 +78,7 @@ public class ServidorUDP {
     
     public void initModeloTabelaUsuarios() {
         setModeloTabelaUsuarios(new javax.swing.table.DefaultTableModel(
-                new Object[][]{}, new String[]{"Nome", "IP", "Porta"}));
+                new Object[][]{}, new String[]{"Nome", "RA", "IP", "Porta"}));
     }
     
     private static void updateModeloTabelaSalas() {
@@ -113,7 +113,7 @@ public class ServidorUDP {
     }
     
     private static void updateModeloTabelaUsuarios() {
-        String rowData[] = new String[3];
+        String rowData[] = new String[4];
         int index = 0;
         if (modeloTabelaUsuarios.getRowCount() > 0) {
             for (int i = modeloTabelaUsuarios.getRowCount() - 1; i > -1; i--) {
@@ -122,8 +122,9 @@ public class ServidorUDP {
         }
         while (index < usuariosConectados.size()) {
             rowData[0] = usuariosConectados.get(index).getNome();
-            rowData[1] = usuariosConectados.get(index).getEndrecoIP().toString();
-            rowData[2] = Integer.toString(usuariosConectados.get(index).getPorta());
+            rowData[1] = usuariosConectados.get(index).getRa();
+            rowData[2] = usuariosConectados.get(index).getEndrecoIP().toString();
+            rowData[3] = Integer.toString(usuariosConectados.get(index).getPorta());
             modeloTabelaUsuarios.addRow(rowData);
             index++;
         }
@@ -173,7 +174,7 @@ public class ServidorUDP {
                         //8 = informacoesSala(); break;
                         //9 = statusVotacao(); break;
                         //10 = conexaoChat(); break;
-                        //11 = logoutSala(); break; 
+                        case 11: logoutSala(request); break; 
                         case 12: mensagemChat(request, JSONReceived); break;
                         //13 = pedidoMensagemEspecifica(); break;
                         //14 = mensagemChatServidor(); break;
@@ -211,13 +212,11 @@ public class ServidorUDP {
                 JSONObject info = new JSONObject(line);
                 novaSala.setInfoSalas(info);
                 String arquivoMensagens = "./salas/mensagens/".concat(Integer.toString(info.getInt("id")));
-                int countMsg = 0;
                 BufferedReader bufferedReaderMsg = new BufferedReader(new FileReader(arquivoMensagens));
                 String mensagem = bufferedReaderMsg.readLine();
                 ArrayList<JSONObject> mensagens = new ArrayList<>();
                 while (mensagem != null) {
                     mensagens.add(new JSONObject(mensagem));
-                    countMsg = countMsg + 1;
                     mensagem = bufferedReaderMsg.readLine();
                 }
                 novaSala.setMensagens(mensagens);
@@ -252,7 +251,7 @@ public class ServidorUDP {
                         DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                         socketServidor.send(reply);
                         System.out.println("mensagem enviada: " + JSONRespostaLoginSucedido);
-                        ModelUsuarioConectado novoUsuario = new ModelUsuarioConectado(user.getString("nome"), request.getAddress(), request.getPort());
+                        ModelUsuarioConectado novoUsuario = new ModelUsuarioConectado(user.getString("nome"), user.getString("ra"), request.getAddress(), request.getPort());
                         usuariosConectados.add(novoUsuario);
                         updateModeloTabelaUsuarios();
                         streamSalas(request.getAddress(), request.getPort());
@@ -380,15 +379,23 @@ public class ServidorUDP {
                 ModelUsuarioConectado novoAcesso = null;
                 for (ModelUsuarioConectado u : usuariosConectados) {
                     if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
-                        novoAcesso = new ModelUsuarioConectado(u.getNome(), u.getEndrecoIP(), u.getPorta());
+                        novoAcesso = new ModelUsuarioConectado(u.getNome(), u.getRa(), u.getEndrecoIP(), u.getPorta());
                         break;
                     }
                 }
+                atualizacaoUsuariosSala(s, novoAcesso, true);
                 s.addUsuariosConectados(novoAcesso);
                 JSONObject histSala = new JSONObject();
                 histSala.put("tipo", 8);
                 histSala.put("tamanho", s.getMensagens().size());
-                histSala.put("usuarios", s.getUsuariosConectados());
+                ArrayList<JSONObject> usuariosSala = new ArrayList<>();
+                for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                    JSONObject uc = new JSONObject();
+                    uc.put("nome", u.getNome());
+                    uc.put("ra", u.getRa());
+                    usuariosSala.add(uc);
+                }
+                histSala.put("usuarios", usuariosSala);
                 byte[] buffer = new byte[1024];
                     buffer = histSala.toString().getBytes();
                     try {
@@ -399,6 +406,36 @@ public class ServidorUDP {
                         Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 streamMensagensSala(request, s.getMensagens());
+            }
+        }
+    }
+    
+    private void logoutSala(DatagramPacket request) {
+        for (ModelSalas s : infoSalas) {
+            for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                    s.getUsuariosConectados().remove(u);
+                    atualizacaoUsuariosSala(s, u, false);
+                }
+            }
+        }
+    }
+    
+    private void atualizacaoUsuariosSala(ModelSalas s, ModelUsuarioConectado novoAcesso, boolean adicionar) {
+        JSONObject novoConectadoSala = new JSONObject();
+        novoConectadoSala.put("tipo", 10);
+        novoConectadoSala.put("adicionar", adicionar);
+        novoConectadoSala.put("nome", novoAcesso.getNome());
+        novoConectadoSala.put("ra", novoAcesso.getRa());
+        byte[] buffer = new byte[1024];
+        buffer = novoConectadoSala.toString().getBytes();
+        for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+            try {
+                DatagramPacket reply = new DatagramPacket(buffer, buffer.length, u.getEndrecoIP(), u.getPorta());
+                socketServidor.send(reply);
+                System.out.println("mensagem enviada: " + novoConectadoSala);
+            } catch (IOException ex) {
+                Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
