@@ -174,7 +174,7 @@ public class ServidorUDP {
                         //9 = statusVotacao(); break;
                         //10 = conexaoChat(); break;
                         //11 = logoutSala(); break; 
-                        //case 12: mensagemChat(request, JSONReceived); break;
+                        case 12: mensagemChat(request, JSONReceived); break;
                         //13 = pedidoMensagemEspecifica(); break;
                         //14 = mensagemChatServidor(); break;
                         //15 = computarVoto(); break;
@@ -370,7 +370,6 @@ public class ServidorUDP {
         System.out.println("tabela atualizada");
     }
     
-    //terminar
     public void acessoSala(DatagramPacket request, JSONObject received) {
         Iterator<ModelSalas> iterator = infoSalas.iterator();
         System.out.println("procurando sala");
@@ -386,12 +385,24 @@ public class ServidorUDP {
                     }
                 }
                 s.addUsuariosConectados(novoAcesso);
+                JSONObject histSala = new JSONObject();
+                histSala.put("tipo", 8);
+                histSala.put("tamanho", s.getMensagens().size());
+                histSala.put("usuarios", s.getUsuariosConectados());
+                byte[] buffer = new byte[1024];
+                    buffer = histSala.toString().getBytes();
+                    try {
+                        DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                        socketServidor.send(reply);
+                        System.out.println("informacoes enviadas: " + histSala);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 streamMensagensSala(request, s.getMensagens());
             }
         }
     }
     
-    //terminar
     private void streamMensagensSala(DatagramPacket request, ArrayList<JSONObject> mensagens) {
         new Thread() {
             public void run() {
@@ -412,15 +423,50 @@ public class ServidorUDP {
         }.start();
     }
     
-    //terminar
     private void mensagemChat(DatagramPacket request, JSONObject received) {
-        received.remove("tipo");
-        salvarMensagemSalaArquivo(received);
-        received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
+        for (ModelUsuarioConectado u : usuariosConectados) {
+            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                for (ModelSalas s : infoSalas) {
+                    if (s.getUsuariosConectados().contains(u.getEndrecoIP()) && s.getUsuariosConectados().contains(u.getPorta())) {
+                        received.remove("tipo");
+                        received.put("id", s.getMensagens().size());
+                        received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
+                        s.addMensagens(received);
+                        salvarMensagemSalaArquivo(s.getInfoSalas().getInt("id"), received);
+                        received.put("tipo", 12);
+                        received.put("tamanho", s.getMensagens().size());
+                        byte[] buffer = new byte[1024];
+                        buffer = received.toString().getBytes();
+                        try {
+                            DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                            socketServidor.send(reply);
+                            System.out.println("mensagem de chat enviada: " + received);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+        }
     }
     
-    private static void salvarMensagemSalaArquivo(JSONObject mensagem) {
-        
+    private static void salvarMensagemSalaArquivo(int id, JSONObject mensagem) {
+        BufferedWriter saida = null;
+        try {
+            saida = new BufferedWriter(new FileWriter("./salas/mensagens/" + id, true));
+            saida.write(mensagem.toString());
+            saida.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (saida != null) {
+                try {
+                    saida.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
     
     private static void salvarSalaArquivo(JSONObject sala) {

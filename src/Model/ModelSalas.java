@@ -48,6 +48,10 @@ public class ModelSalas {
     public void setMensagens(ArrayList<JSONObject> mensagens) {
         this.mensagens = mensagens;
     }
+    
+    public void addMensagens(JSONObject mensagem) {
+        mensagens.add(mensagem);
+    }
 
     /**
      * @return the usuariosConectados
