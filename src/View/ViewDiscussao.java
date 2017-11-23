@@ -26,19 +26,14 @@ public class ViewDiscussao extends javax.swing.JFrame {
     private DefaultTableModel modeloTabelaUsuarios;
     private ModelCliente cliente;
     private StyledDocument doc;
+    private Style style;
     
     public ViewDiscussao() {
         initComponents();
         doc = new DefaultStyledDocument();
         StyleContext context = new StyleContext();
-        Style style = context.addStyle("test", null);
+        style = context.addStyle("test", null);
         StyleConstants.setForeground(style, Color.BLACK);
-        try {
-            doc.insertString(0, "TEstansadoasoda", style);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(ViewDiscussao.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        jMessagePane.setStyledDocument(doc);
         jMessagePane.setEditable(false);
     }
     
@@ -57,6 +52,9 @@ public class ViewDiscussao extends javax.swing.JFrame {
         tabelaUsers = new javax.swing.JTable();
         paneConversa = new javax.swing.JScrollPane();
         jMessagePane = new javax.swing.JTextPane();
+        jSairSala = new javax.swing.JButton();
+        jMensagem = new javax.swing.JTextField();
+        buttonEnviar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -76,42 +74,90 @@ public class ViewDiscussao extends javax.swing.JFrame {
         jMessagePane.setEditable(false);
         paneConversa.setViewportView(jMessagePane);
 
+        jSairSala.setText("Sair");
+        jSairSala.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSairSalaActionPerformed(evt);
+            }
+        });
+
+        buttonEnviar.setText("Enviar");
+        buttonEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonEnviarActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jSairSala)
+                .addGap(41, 41, 41))
+            .addGroup(layout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(buttonEnviar)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                        .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(88, Short.MAX_VALUE)
+                .addGap(30, 30, 30)
+                .addComponent(jSairSala)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(71, 71, 71))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonEnviar))
+                .addGap(43, 43, 43))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jSairSalaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSairSalaActionPerformed
+        cliente.sairSala();
+    }//GEN-LAST:event_jSairSalaActionPerformed
+
+    private void buttonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonEnviarActionPerformed
+        cliente.enviarMsg(jMensagem.getText());
+        jMensagem.setText("");
+    }//GEN-LAST:event_buttonEnviarActionPerformed
 
 public void atualizarListaUsers(DefaultTableModel model){
     modeloTabelaUsuarios = model;
     tabelaUsers.setModel(modeloTabelaUsuarios);
 }
 
-public void atualizarMensagens(StyledDocument doc){
+public void atualizarMensagens(String mensagem, String criador){
+    try {
+         doc.insertString(0, mensagem + "\n", style);
+    } catch (BadLocationException ex) {
+        Logger.getLogger(ViewDiscussao.class.getName()).log(Level.SEVERE, null, ex);
+    }
     jMessagePane.setStyledDocument(doc);
 }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonEnviar;
+    private javax.swing.JTextField jMensagem;
     private javax.swing.JTextPane jMessagePane;
+    private javax.swing.JButton jSairSala;
     private javax.swing.JScrollPane paneConversa;
     private javax.swing.JScrollPane paneUsers;
     private javax.swing.JTable tabelaUsers;

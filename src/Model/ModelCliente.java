@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -49,7 +50,7 @@ public class ModelCliente extends Thread {
     private InetAddress host;
     private String senha, login, username;
     private static ArrayList<JSONObject> infoSalas;
-    private static ArrayList<String> usuariosConectados;
+    private static ArrayList<JSONObject> usuariosConectados;
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
     private static ViewPrincipal GUICliente;
@@ -142,7 +143,7 @@ public class ModelCliente extends Thread {
     
     public void initModeloTabelaUsuarios() {
         setModeloTabelaUsuarios(new javax.swing.table.DefaultTableModel(
-                new Object[][]{}, new String[]{"Nome"}));
+                new Object[][]{}, new String[]{"Nome","RA"}));
     }
     
     private static void updateModeloTabelaSalas() {
@@ -166,7 +167,7 @@ public class ModelCliente extends Thread {
     }
     
     private static void updateModeloTabelaUsuarios() {
-        String rowData[] = new String[1];
+        String rowData[] = new String[2];
         int index = 0;
         if (modeloTabelaUsuarios.getRowCount() > 0) {
             for (int i = modeloTabelaUsuarios.getRowCount() - 1; i > -1; i--) {
@@ -175,7 +176,8 @@ public class ModelCliente extends Thread {
         }
 
         while (index < usuariosConectados.size()) {
-            rowData[0] = usuariosConectados.get(index);
+            rowData[0] = usuariosConectados.get(index).getString("nome");
+            rowData[1] = "teste";//usuariosConectados.get(index).getString("ra");
             modeloTabelaUsuarios.addRow(rowData);
             index++;
         }
@@ -210,6 +212,7 @@ public class ModelCliente extends Thread {
                             case 2: loginSucedido(JSONReceived); break;
                             case 4: receberSala(JSONReceived); break;
                             case 8: receberDiscussao(JSONReceived); break;
+                            case 10: atualizarUsers(JSONReceived); break;
                             case 12: receberMensagem(JSONReceived); break;
                             default: System.out.println("Mensagem com Id não identificado");break;
                         } 
@@ -259,7 +262,7 @@ public class ModelCliente extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.print("mensagem enviada: " + JSONLogin);
+        System.out.println("Mensagem enviada: " + JSONLogin);
     }
     
     public void fazerLogout(){
@@ -276,6 +279,7 @@ public class ModelCliente extends Thread {
         } catch(IOException ex){
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Mensagem enviada: " + JSONLogout);
         
         GUICliente.logout();
     }
@@ -295,6 +299,44 @@ public class ModelCliente extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Mensagem enviada: " + JSONacessar);
+    }
+    
+    public void sairSala(){
+        JSONObject JSONsair = new JSONObject();
+        JSONsair.put("tipo",11);
+        
+        byte[] buffer = new byte[2048];
+        buffer = JSONsair.toString().getBytes();
+        
+        DatagramPacket msgSair = new DatagramPacket(buffer, buffer.length, host, porta);
+        
+        try {
+            socketCliente.send(msgSair);
+        } catch (IOException ex) {
+            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        viewdiscussao.setVisible(false);
+        System.out.println("Mensagem enviada: " + JSONsair);
+    }
+    
+    public void enviarMsg(String mensagem){
+        JSONObject msg = new JSONObject();
+        msg.put("tipo", 14);
+        msg.put("criador",username);
+        msg.put("mensagem", mensagem);
+        
+        byte[] buffer = new byte[2048];
+        buffer = msg.toString().getBytes();
+        
+        DatagramPacket msgmsg = new DatagramPacket(buffer, buffer.length, host, porta);
+        
+        try {
+            socketCliente.send(msgmsg);
+        } catch (IOException ex) {
+            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("Mensagem enviada: " + msg);
     }
     
     private static void loginErrado(){
@@ -329,13 +371,40 @@ public class ModelCliente extends Thread {
     private void receberDiscussao(JSONObject discussao){
         JSONArray users = discussao.getJSONArray("usuarios");
         for(int i = 0; i < users.length(); i++){
-            usuariosConectados.add(users.getString(i));
+            JSONObject atual = users.getJSONObject(i);
+            usuariosConectados.add(atual);
         }
+        updateModeloTabelaUsuarios();
         viewdiscussao.setVisible(true);
+        viewdiscussao.atualizarListaUsers(modeloTabelaUsuarios);
+    }
+    
+    private void atualizarUsers(JSONObject user){
+        Boolean opt = user.getBoolean("adicionar");
+        
+        if(opt){
+            JSONObject usuario = new JSONObject();
+            usuario.put("nome", user.getString("nome"));
+            usuario.put("ra", user.getString("ra"));
+        }else{
+            Iterator<JSONObject> it = usuariosConectados.iterator();
+            JSONObject aux = new JSONObject();
+            String ra = user.getString("ra");
+            int i = 0;
+            while(it.hasNext()){
+                aux = it.next();
+                if(aux.getString("ra").equals(ra)){
+                    usuariosConectados.remove(i);
+                }
+                i++;
+            }
+        }
     }
     
     private void receberMensagem(JSONObject mensagem){
-        
+        String str = mensagem.getString("mensagem");
+        String criador = mensagem.getString("criador");
+        viewdiscussao.atualizarMensagens(str, criador);
     }
     
     private static void receberSala(JSONObject sala){

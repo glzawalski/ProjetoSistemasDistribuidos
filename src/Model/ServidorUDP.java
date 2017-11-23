@@ -175,9 +175,9 @@ public class ServidorUDP {
                         //9 = statusVotacao(); break;
                         //10 = conexaoChat(); break;
                         case 11: logoutSala(request); break; 
-                        case 12: mensagemChat(request, JSONReceived); break;
+                        //12 = mensagemChat(); break;
                         //13 = pedidoMensagemEspecifica(); break;
-                        //14 = mensagemChatServidor(); break;
+                        case 14: mensagemChatServidor(request, JSONReceived); break;
                         //15 = computarVoto(); break;
                         //16 = ping(); break;
                         default: mensagemMalFormada(request, JSONReceived); break;
@@ -416,6 +416,7 @@ public class ServidorUDP {
                 if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                     s.getUsuariosConectados().remove(u);
                     atualizacaoUsuariosSala(s, u, false);
+                    break;
                 }
             }
         }
@@ -460,31 +461,35 @@ public class ServidorUDP {
         }.start();
     }
     
-    private void mensagemChat(DatagramPacket request, JSONObject received) {
-        for (ModelUsuarioConectado u : usuariosConectados) {
-            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+    private void mensagemChatServidor(DatagramPacket request, JSONObject received) {
+        //for (ModelUsuarioConectado u : usuariosConectados) {
+            //if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                 for (ModelSalas s : infoSalas) {
-                    if (s.getUsuariosConectados().contains(u.getEndrecoIP()) && s.getUsuariosConectados().contains(u.getPorta())) {
-                        received.remove("tipo");
-                        received.put("id", s.getMensagens().size());
-                        received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
-                        s.addMensagens(received);
-                        salvarMensagemSalaArquivo(s.getInfoSalas().getInt("id"), received);
-                        received.put("tipo", 12);
-                        received.put("tamanho", s.getMensagens().size());
-                        byte[] buffer = new byte[1024];
-                        buffer = received.toString().getBytes();
-                        try {
-                            DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-                            socketServidor.send(reply);
-                            System.out.println("mensagem de chat enviada: " + received);
-                        } catch (IOException ex) {
-                            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("procurando sala");
+                    for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                        if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                            System.out.println("sala encontrada revendiando mensagem chat");
+                            received.remove("tipo");
+                            received.put("id", s.getMensagens().size());
+                            received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
+                            s.addMensagens(received);
+                            salvarMensagemSalaArquivo(s.getInfoSalas().getInt("id"), received);
+                            received.put("tipo", 12);
+                            received.put("tamanho", s.getMensagens().size());
+                            byte[] buffer = new byte[1024];
+                            buffer = received.toString().getBytes();
+                            try {
+                                DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                                socketServidor.send(reply);
+                                System.out.println("mensagem de chat enviada: " + received);
+                            } catch (IOException ex) {
+                                Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     }
                 }
-            }
-        }
+            //}
+        //}
     }
     
     private static void salvarMensagemSalaArquivo(int id, JSONObject mensagem) {
