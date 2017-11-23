@@ -1,0 +1,157 @@
+-1 = mensagem mal formada
+{
+	"tipo":-1,
+	"pacote":"pacote inteiro errado aqui pro cara saber"
+}
+
+0 = login, do cliente pro servidor 
+{
+	"tipo":0,
+	"ra":"12345678",
+	"senha":"hash da senha"
+}
+
+1 = login, do servidor, dando errado
+{
+	"tipo":1
+}
+
+2 = lista de discussões, do servidor, login bem sucedido
+{
+	"tipo":2,
+	"nome":"nome do cliente aqui",
+	"tamanho":666
+}
+
+3 = logout, enviado do cliente ao se desconectar
+{
+	"tipo":3	
+}
+
+4 = uma discussão
+{
+	"tipo":4,
+	"id":numero_da_sala_dado_pelo_servidor_e_tal,
+	"nome":"nome_da_sala_e_tal",
+	"descricao": "descrição do que será votado e tal",
+	"criador":"nome do cara"
+	"inicio":"unix timestamp",
+	"fim": "unix timestamp",
+	"status":true/false,
+	"tamanho":666
+}
+
+5 = pedir sala especifica
+{
+	"tipo":5,
+	"id_sala":numero_da_sala
+}
+
+6 = criar sala
+{
+	"tipo":6,
+	"nome":"nome_da_sala_e_tal",
+	"descricao": "descrição do que será votado e tal",
+	"fim": "unix timestamp"
+	"opcoes":[
+		{"nome":"usdhfasdhfaeshf"},
+		...
+	]
+}
+
+
+7 = cliente pedindo acesso a sala
+{
+	"tipo":7,
+	"id":id_da_sala_que_o_cliente_quer_entrar
+}
+
+8 = historico e usuários, do servidor
+{
+	"tipo":8,
+	"tamanho":666 //qtd de mensagens 
+	"usuarios":[
+		{"nome":"nome_do_cara", "ra": "ra"},
+		...
+	]
+}
+
+9 = status da votação
+{
+	"tipo":9,
+	"acabou":false,
+	"resultados":[                 // explodir tamanho do udp?
+		{"nome_da_opcao":numero_de_votos}, // 0 enquanto não terminou?
+		...
+	]
+}
+
+10 = desconectar/conectar usuário
+{
+	"tipo":10,
+	"adicionar":true/false,
+	"nome":"nome_do_usuario", 
+	"ra": "ra" 
+}
+ 
+11 = logout da sala do cliente para servidor 
+{
+	"tipo":11
+}
+
+12 = mensagem do servidor
+{
+	"tipo":12,
+	"id":numero_da_mensagem,
+	"timestamp":"unix_time",
+	"tamanho":666 //qtd de mensagens,
+	"criador":"nome do cara que escreveu a mensagem",
+	"mensagem":"string de até 1000 caracteres"
+}
+
+
+13 = pedir mensagem especifica
+{
+	"tipo":13,
+	"id_msg":numero_da_mensagem,
+	"id_sala":numero_da_sala
+}
+
+14 = mensagem do cliente pro servidor
+{
+	"tipo":14,
+	"criador":"nome do cara",
+	"mensagem":"de até 1000 caracteres"
+}
+
+15 = voto
+{
+	"tipo":15,
+	"sala":id_da_sala,
+	"opcao":"nome_da_opção"
+}
+
+16 = ping
+{
+	"tipo":16,
+	"sala":id_da_sala
+}
+
+-1 = mensagem mal formada
+0 = login, do cliente pro servidor
+1 = login, do servidor, dando errado
+2 = lista de discussões, do servidor, login bem sucedido
+3 = logout, enviado do cliente ao se desconectar
+4 = uma discussão
+5 = pedir sala especifica
+6 = criar sala
+7 = cliente pedindo acesso a sala
+8 = historico e usuários, do servidor
+9 = status da votação
+10 = desconectar/conectar usuário
+11 = logout da sala do cliente para servidor 
+12 = mensagem do servidor
+13 = pedir mensagem especifica
+14 = mensagem do cliente pro servidor
+15 = voto
+16 = ping

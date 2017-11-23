@@ -16,6 +16,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -33,9 +35,8 @@ import org.json.JSONObject;
  */
 public class ServidorUDP {
     private static DatagramSocket socketServidor = null;
-    private static int qtdSalas; 
     private int porta;
-    private static ArrayList<JSONObject> infoSalas;
+    private static ArrayList<ModelSalas> infoSalas;
     private static ArrayList<ModelUsuarioConectado> usuariosConectados;
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
@@ -43,14 +44,7 @@ public class ServidorUDP {
     public ServidorUDP() {
         infoSalas = new ArrayList();
         usuariosConectados = new ArrayList();
-    }
-    
-    public int getQtdSalas() {
-        return qtdSalas;
-    }
-    
-    public void setQtdSalas(int aQtdSalas) {
-        qtdSalas = aQtdSalas;
+        inicializarSalas();
     }
     
     public int getPorta() {
@@ -97,11 +91,15 @@ public class ServidorUDP {
         }
         
         while (index < infoSalas.size()) {
-            rowData[0] = infoSalas.get(index).getInt("id");
-            rowData[1] = infoSalas.get(index).getString("criador");
-            rowData[2] = infoSalas.get(index).getString("descricao");
-            rowData[3] = formatarData(infoSalas.get(index).getLong("inicio"));
-            rowData[4] = formatarData(infoSalas.get(index).getLong("fim"));
+            rowData[0] = infoSalas.get(index).getInfoSalas().getInt("id");
+            rowData[1] = infoSalas.get(index).getInfoSalas().getString("criador");
+            rowData[2] = infoSalas.get(index).getInfoSalas().getString("descricao");
+            /*long inicio = Long.valueOf(infoSalas.get(index).getInfoSalas().getString("inicio"));
+            rowData[3] = formatarData(inicio);
+            long fim = Long.valueOf(infoSalas.get(index).getInfoSalas().getString("fim"));
+            rowData[4] = formatarData(fim);*/
+            rowData[3] = infoSalas.get(index).getInfoSalas().getString("inicio");
+            rowData[4] = infoSalas.get(index).getInfoSalas().getString("fim");
             modeloTabelaSalas.addRow(rowData);
             index++;
         }
@@ -136,7 +134,6 @@ public class ServidorUDP {
         initModeloTabelaUsuarios();
         new Thread() {
             public void run() {
-                qtdSalas = contagemSalas();
                 updateModeloTabelaSalas();
                 try {
                     socketServidor = new DatagramSocket(porta);
@@ -148,7 +145,7 @@ public class ServidorUDP {
                     GUIServidor.textfieldPorta.setEditable(false);
                 }
                 System.out.println("Servidor aberto em : " + socketServidor.getLocalPort());
-                System.out.println("Numero de salas abertas: " + qtdSalas);
+                System.out.println("Numero de salas abertas: " + infoSalas.size());
                 byte[] buffer = new byte[1024];
                 while (!socketServidor.isClosed()) {
                     DatagramPacket request = new DatagramPacket(buffer, buffer.length);
@@ -160,56 +157,82 @@ public class ServidorUDP {
                     String received = new String(request.getData(),0,request.getLength());
                     JSONObject JSONReceived = new JSONObject(received);
                     System.out.println("Mensagem recebida: " + JSONReceived);
+                    if (JSONReceived.has("tipo") == false) {
+                        mensagemMalFormada(request, JSONReceived);
+                    }
                     Integer tipo = JSONReceived.getInt("tipo");
                     switch (tipo) {
-                        /*case -2: ping(); break;
-                        case -1: erroMalFormada(); break;*/
-                        case 0: checarLogin(request, JSONReceived); break;
-                        /*case 1: loginErrado(); break;
-                        case 2: loginSucedido(); break;*/
-                        case 3: criarSala(request, JSONReceived); break;
-                        //case 4: atualizarListaSalas(); break;
-                        case 5: acessoSala(request, JSONReceived); break;
-                        /*case 6: historicoUsuariosSala(); break;
-                        case 7: statusVotacao(); break;*/
-                        case 8: mensagemChat(request, JSONReceived); break;
-                        //case 9: mensagemChatServidor(); break;
-                        case 10: logoutUsuario(request, JSONReceived); break;
-                        /*case 11: respostaAcessoSala(); break;
-                        case 12: respostaCriarSala(); break;
-                        case 13: mensagemEspecifica(); break;
-                        case 14: salaEspecifica(); break;
-                        case 15: computarVoto(); break;
-                        case 16: des-conectarSala(); break;*/
+                        case 0 : checarLogin(request, JSONReceived); break;
+                        //1 = loginErrado(); break;
+                        //2 = loginSucedido(); break;
+                        case 3: logoutServidor(request, JSONReceived); break;
+                        //4 = enviarSala(); break;
+                        case 5: pedidoSalaEspecifica(request, JSONReceived); break;
+                        case 6: criarSala(request, JSONReceived); break;
+                        case 7: acessoSala(request, JSONReceived); break;
+                        //8 = informacoesSala(); break;
+                        //9 = statusVotacao(); break;
+                        //10 = conexaoChat(); break;
+                        //11 = logoutSala(); break; 
+                        //case 12: mensagemChat(request, JSONReceived); break;
+                        //13 = pedidoMensagemEspecifica(); break;
+                        //14 = mensagemChatServidor(); break;
+                        //15 = computarVoto(); break;
+                        //16 = ping(); break;
+                        default: mensagemMalFormada(request, JSONReceived); break;
                     } 
                 }
             }
         }.start();
     }
     
-    private int contagemSalas() {
-        String rooms = "salas.txt";
-        String line;
-        Integer countSalas = 0;
-        FileReader roomfile;
+    private void mensagemMalFormada(DatagramPacket request, JSONObject JSONReceived) {
+        JSONObject JSONErro = new JSONObject();
+        JSONErro.put("pacote", JSONReceived.toString());
+        JSONErro.put("tipo", -1);        
         try {
-            roomfile = new FileReader(rooms);
-            BufferedReader bufferedReader = new BufferedReader(roomfile);
-            while((line = bufferedReader.readLine()) != null){
-                infoSalas.add(new JSONObject(line));
-                countSalas = countSalas + 1;
+            byte[] buffer = new byte[1024];
+            buffer = JSONErro.toString().getBytes();
+            DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+            socketServidor.send(reply);
+            System.out.println("mensagem enviada: " + JSONErro);
+        } catch (IOException ex) {
+            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void inicializarSalas() {
+        String line;
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("./salas/salas"));
+            line = bufferedReader.readLine();
+            while(line != null){
+                ModelSalas novaSala = new ModelSalas();
+                JSONObject info = new JSONObject(line);
+                novaSala.setInfoSalas(info);
+                String arquivoMensagens = "./salas/mensagens/".concat(Integer.toString(info.getInt("id")));
+                int countMsg = 0;
+                BufferedReader bufferedReaderMsg = new BufferedReader(new FileReader(arquivoMensagens));
+                String mensagem = bufferedReaderMsg.readLine();
+                ArrayList<JSONObject> mensagens = new ArrayList<>();
+                while (mensagem != null) {
+                    mensagens.add(new JSONObject(mensagem));
+                    countMsg = countMsg + 1;
+                    mensagem = bufferedReaderMsg.readLine();
+                }
+                novaSala.setMensagens(mensagens);
+                infoSalas.add(novaSala);
+                line = bufferedReader.readLine();
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return countSalas;
     }
 
     private static void checarLogin(DatagramPacket request, JSONObject received) {
         String fileName = "loginhash.txt";
-        //String fileName = "login.txt";
         String line;
         try {
             FileReader fileReader = new FileReader(fileName);
@@ -224,10 +247,11 @@ public class ServidorUDP {
                         JSONObject JSONRespostaLoginSucedido = new JSONObject();
                         JSONRespostaLoginSucedido.put("tipo", 2);
                         JSONRespostaLoginSucedido.put("nome", user.getString("nome"));
-                        JSONRespostaLoginSucedido.put("tamanho", qtdSalas);
+                        JSONRespostaLoginSucedido.put("tamanho", infoSalas.size());
                         buffer = JSONRespostaLoginSucedido.toString().getBytes();
                         DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                         socketServidor.send(reply);
+                        System.out.println("mensagem enviada: " + JSONRespostaLoginSucedido);
                         ModelUsuarioConectado novoUsuario = new ModelUsuarioConectado(user.getString("nome"), request.getAddress(), request.getPort());
                         usuariosConectados.add(novoUsuario);
                         updateModeloTabelaUsuarios();
@@ -240,17 +264,19 @@ public class ServidorUDP {
                         buffer = JSONRespostaLoginFalho.toString().getBytes();
                         DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                         socketServidor.send(reply);
+                        System.out.println("mensagem enviada: " + JSONRespostaLoginFalho);
                         break;
                     }
                 }
             }
             if (flagEncontrado == false) {
                 byte[] buffer = new byte[1024];
-                        JSONObject JSONRespostaLoginSucedido = new JSONObject();
-                        JSONRespostaLoginSucedido.put("tipo", 1);
-                        buffer = JSONRespostaLoginSucedido.toString().getBytes();
-                        DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-                        socketServidor.send(reply);
+                JSONObject JSONRespostaLoginErro = new JSONObject();
+                JSONRespostaLoginErro.put("tipo", 1);
+                buffer = JSONRespostaLoginErro.toString().getBytes();
+                DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                socketServidor.send(reply);
+                System.out.println("mensagem enviada: " + JSONRespostaLoginErro);
             }
             bufferedReader.close();         
         }
@@ -262,25 +288,49 @@ public class ServidorUDP {
     }
     
     private static void streamSalas(InetAddress address, int port) {
-        byte[] buffer = new byte[1024];
-        for (JSONObject s : infoSalas) {
-            try {
-                s.put("tipo", 11);
-                buffer = s.toString().getBytes();
-                DatagramPacket reply = new DatagramPacket(buffer, buffer.length, address, port);
-                socketServidor.send(reply);
-            } catch (IOException ex) {
-                Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                s.remove("tipo");
+        new Thread() {
+            public void run() {
+                byte[] buffer = new byte[1024];
+                for (ModelSalas s : infoSalas) {
+                    JSONObject informacoes = s.getInfoSalas();
+                    informacoes.put("tipo", 4);
+                    informacoes.put("tamanho", infoSalas.size());
+                    informacoes.remove("usuarios");
+                    buffer = informacoes.toString().getBytes();
+                    try {
+                        DatagramPacket reply = new DatagramPacket(buffer, buffer.length, address, port);
+                        socketServidor.send(reply);
+                        System.out.println("mensagem enviada: " + informacoes);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }.start();
+    }
+    
+    private static void pedidoSalaEspecifica(DatagramPacket request, JSONObject received) {
+        for (ModelSalas s : infoSalas) {
+            if (s.getInfoSalas().getInt("id") == received.getInt("id")) {
+                JSONObject salaEspecifica = new JSONObject(s.getInfoSalas());
+                salaEspecifica.put("tipo", 4);
+                byte[] buffer = new byte[1024];
+                buffer = salaEspecifica.toString().getBytes();
+                try {
+                    DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                    socketServidor.send(reply);
+                    System.out.println("mensagem enviada: " + salaEspecifica);
+                } catch (IOException ex) {
+                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
             }
         }
     }
     
     private static void criarSala(DatagramPacket request, JSONObject received) {
-        qtdSalas++;
         received.remove("tipo");
-        received.put("id", qtdSalas);
+        received.put("id", infoSalas.size());
         String criador = null;
         for (ModelUsuarioConectado u : usuariosConectados) {
             if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
@@ -289,13 +339,95 @@ public class ServidorUDP {
         }
         received.put("criador", criador);
         received.put("inicio", Long.toString(Instant.now().getEpochSecond()));
-        received.put("fim", Long.toString(Instant.now().getEpochSecond()));
         received.put("status", true);
-        received.put("mensagens", 0);
+        salvarSalaArquivo(received);
+        criarArquivoSala(infoSalas.size());
+        ModelSalas novaSala = new ModelSalas();
+        novaSala.setInfoSalas(received);
+        infoSalas.add(novaSala);
+        received.put("tamanho", infoSalas.size());
+        received.put("tipo", 4);
+        byte[] buffer = new byte[1024];
+        buffer = received.toString().getBytes();
+        broadcast(buffer);
+        System.out.println("mensagem enviada: " + received);
+        updateModeloTabelaSalas();
+    }
+    
+    public void logoutServidor(DatagramPacket request, JSONObject received) {
+        Iterator<ModelUsuarioConectado> iterator = usuariosConectados.iterator();
+        ModelUsuarioConectado u = null;
+        System.out.println("procurando cliente logout");
+        while (iterator.hasNext()) {
+            u = iterator.next();
+            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                System.out.println("cliente encontrado");
+                iterator.remove();
+                System.out.println("cliente removido");
+            }
+        }
+        updateModeloTabelaUsuarios();
+        System.out.println("tabela atualizada");
+    }
+    
+    //terminar
+    public void acessoSala(DatagramPacket request, JSONObject received) {
+        Iterator<ModelSalas> iterator = infoSalas.iterator();
+        System.out.println("procurando sala");
+        while (iterator.hasNext()) {
+            ModelSalas s = iterator.next();
+            if (s.getInfoSalas().getInt("id") == received.getInt("id")) {
+                System.out.println("sala encontrada, enviando informações da sala...");
+                ModelUsuarioConectado novoAcesso = null;
+                for (ModelUsuarioConectado u : usuariosConectados) {
+                    if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                        novoAcesso = new ModelUsuarioConectado(u.getNome(), u.getEndrecoIP(), u.getPorta());
+                        break;
+                    }
+                }
+                s.addUsuariosConectados(novoAcesso);
+                streamMensagensSala(request, s.getMensagens());
+            }
+        }
+    }
+    
+    //terminar
+    private void streamMensagensSala(DatagramPacket request, ArrayList<JSONObject> mensagens) {
+        new Thread() {
+            public void run() {
+                for (JSONObject m : mensagens) {
+                    m.put("tipo", 12);
+                    m.put("tamanho", mensagens.size());
+                    byte[] buffer = new byte[1024];
+                    buffer = m.toString().getBytes();
+                    try {
+                        DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                        socketServidor.send(reply);
+                        System.out.println("mensagem de chat enviada: " + m);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }.start();
+    }
+    
+    //terminar
+    private void mensagemChat(DatagramPacket request, JSONObject received) {
+        received.remove("tipo");
+        salvarMensagemSalaArquivo(received);
+        received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
+    }
+    
+    private static void salvarMensagemSalaArquivo(JSONObject mensagem) {
+        
+    }
+    
+    private static void salvarSalaArquivo(JSONObject sala) {
         BufferedWriter saida = null;
         try {
-            saida = new BufferedWriter(new FileWriter("salas.txt", true));
-            saida.write(received.toString());
+            saida = new BufferedWriter(new FileWriter("./salas/salas", true));
+            saida.write(sala.toString());
             saida.flush();
         } catch (IOException ex) {
             Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
@@ -308,10 +440,18 @@ public class ServidorUDP {
                 }
             }
         }
-        infoSalas.add(received);
-        byte[] buffer = new byte[1024];
-        received.put("tipo", 11);
-        buffer = received.toString().getBytes();
+    }
+    
+    private static void criarArquivoSala(int id) {
+        String data = "";
+        try {
+            Files.write(Paths.get("./salas/mensagens/" + Integer.toString(id)), data.getBytes());
+        } catch (IOException ex) {
+            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private static void broadcast(byte[] buffer) {
         for (ModelUsuarioConectado u : usuariosConectados) {
             try {
                 DatagramPacket atualizacaoListaSalas = new DatagramPacket(buffer, buffer.length, u.getEndrecoIP(), u.getPorta());
@@ -320,7 +460,6 @@ public class ServidorUDP {
                     Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        updateModeloTabelaSalas();
     }
     
     public static String sha256(String base) {
@@ -341,54 +480,5 @@ public class ServidorUDP {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-    
-    public void logoutUsuario(DatagramPacket request, JSONObject received) {
-        Iterator<ModelUsuarioConectado> iterator = usuariosConectados.iterator();
-        while (iterator.hasNext()) {
-            System.out.println("procurando cliente");
-            ModelUsuarioConectado u = iterator.next();
-            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
-                System.out.println("cliente encontrado");
-                iterator.remove();
-                System.out.println("cliente removido");
-            }
-        }
-                /*try {
-                    byte[] buffer = new byte[1024];
-                    buffer = received.toString().getBytes();
-                    DatagramPacket logoutUsuario = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-                    socketServidor.send(logoutUsuario);
-                } catch (IOException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
-                }*/
-        updateModeloTabelaUsuarios();
-        System.out.println("tabela atualizada");
-    }
-    
-    public void acessoSala(DatagramPacket request, JSONObject received) {
-        Iterator<JSONObject> iterator = infoSalas.iterator();
-        while (iterator.hasNext()) {
-            System.out.println("procurando sala");
-            JSONObject s = iterator.next();
-            if (s.getInt("id") == received.getInt("id")) {
-                System.out.println("sala encontrado");
-                byte[] buffer = new byte[1024];
-                try {
-                    s.put("tipo", 11);
-                    buffer = s.toString().getBytes();
-                    DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-                    socketServidor.send(reply);
-                } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    s.remove("tipo");
-                }
-            }
-        }
-    }
-    
-    private void mensagemChat(DatagramPacket request, JSONObject received) {
-        received.remove("tipo");
     }
 }

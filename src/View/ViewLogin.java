@@ -32,6 +32,7 @@ public class ViewLogin extends JFrame {
     private InetAddress host;
     private DatagramSocket socketCliente;
     private ViewPrincipal viewprincipal;
+    private ViewDiscussao viewdiscussao;
 
     /**
      * Creates new form ViewLogin
@@ -189,10 +190,12 @@ public class ViewLogin extends JFrame {
 
     private void beginStuff() throws UnknownHostException, InterruptedException{        
         viewprincipal = new ViewPrincipal();
+        viewdiscussao = new ViewDiscussao();
         
-        cliente = new ModelCliente(viewprincipal);
+        cliente = new ModelCliente(viewprincipal, viewdiscussao);
         cliente.init();
         viewprincipal.setCliente(cliente);
+        viewdiscussao.setCliente(cliente);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

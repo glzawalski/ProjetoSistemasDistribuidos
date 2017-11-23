@@ -5,9 +5,10 @@
  */
 package Model;
 
-import ViewCliente.ViewConexao;
+import View.ViewDiscussao;
 import View.ViewLogin;
 import View.ViewPrincipal;
+import java.awt.Color;
 import java.awt.GridBagLayout;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -30,6 +31,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -47,11 +53,14 @@ public class ModelCliente extends Thread {
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
     private static ViewPrincipal GUICliente;
+    private static ViewDiscussao viewdiscussao;
+    private StyledDocument doc;
     
-    public ModelCliente(ViewPrincipal view) {
+    public ModelCliente(ViewPrincipal view, ViewDiscussao discussao) {
         infoSalas = new ArrayList();
         usuariosConectados = new ArrayList();
         GUICliente = view;
+        viewdiscussao = discussao;
     }
     
     public void setSocket(DatagramSocket aSocket){
@@ -172,6 +181,10 @@ public class ModelCliente extends Thread {
         }
     }
     
+    public void setViewDiscussao(ViewDiscussao view){
+        viewdiscussao = view;
+    }
+    
     public void init(){
         initModeloTabelaSalas();
         initModeloTabelaUsuarios();
@@ -181,6 +194,7 @@ public class ModelCliente extends Thread {
                      qtdSalas = 0;
                      updateModeloTabelaSalas();
                      socketCliente = new DatagramSocket();
+                     doc = new DefaultStyledDocument();
 
                      System.out.println("Numero de salas abertas: " + qtdSalas);
                      byte[] buffer = new byte[1024];
@@ -192,27 +206,12 @@ public class ModelCliente extends Thread {
                         System.out.println("Mensagem recebida: " + JSONReceived);
                         Integer tipo = JSONReceived.getInt("tipo");
                         switch (tipo) {
-                            /*case -2: ping(); break;
-                            case -1: erroMalFormada(); break;
-                            case 0: checarLogin(request, JSONReceived); break;*/
                             case 1: loginErrado(); break;
-                            case 2: loginSucedido(JSONReceived); break;/*
-                            case 3: criarSala(); break;
-                            case 4: atualizarListaSalas(); break;
-                            case 5: acessoSala(); break;
-                            case 6: historicoUsuariosSala(); break;
-                            case 7: statusVotacao(); break;
-                            case 8: mensagemChat(); break;
-                            case 9: mensagemChatServidor(); break;
-                            case 10: break;
-                            */case 11: respostaAcessoSala(JSONReceived); break;
-                            /*
-                            case 12: respostaCriarSala(); break;
-                            case 13: mensagemEspecifica(); break;
-                            case 14: salaEspecifica(); break;
-                            case 15: computarVoto(); break;
-                            case 16: des-conectarSala(); break;
-                            */
+                            case 2: loginSucedido(JSONReceived); break;
+                            case 4: receberSala(JSONReceived); break;
+                            case 8: receberDiscussao(JSONReceived); break;
+                            case 12: receberMensagem(JSONReceived); break;
+                            default: System.out.println("Mensagem com Id não identificado");break;
                         } 
                      }
                 } catch (SocketException ex){} catch (FileNotFoundException ex) {
@@ -265,7 +264,7 @@ public class ModelCliente extends Thread {
     
     public void fazerLogout(){
         JSONObject JSONLogout = new JSONObject();
-        JSONLogout.put("tipo", 10);
+        JSONLogout.put("tipo", 3);
         
         byte[] buffer = new byte[1024];
         buffer = JSONLogout.toString().getBytes();
@@ -281,6 +280,23 @@ public class ModelCliente extends Thread {
         GUICliente.logout();
     }
     
+    public void acessarSala(int idSala){
+        JSONObject JSONacessar = new JSONObject();
+        JSONacessar.put("tipo",7);
+        JSONacessar.put("id",idSala);
+        
+        byte[] buffer = new byte[2048];
+        buffer = JSONacessar.toString().getBytes();
+        
+        DatagramPacket msgAcessar = new DatagramPacket(buffer, buffer.length, host, porta);
+        
+        try {
+            socketCliente.send(msgAcessar);
+        } catch (IOException ex) {
+            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private static void loginErrado(){
         JOptionPane.showMessageDialog(null, "Erro de login", "Erro", JOptionPane.ERROR_MESSAGE);
     }
@@ -293,7 +309,7 @@ public class ModelCliente extends Thread {
     
     public void criarSala(String nome,String desc){
         JSONObject JSONSala = new JSONObject();
-        JSONSala.put("tipo", 3);
+        JSONSala.put("tipo", 6);
         JSONSala.put("nome", nome);
         JSONSala.put("descricao", desc);
         JSONSala.put("fim", "Tempo!");
@@ -310,7 +326,19 @@ public class ModelCliente extends Thread {
         }
     }
     
-    private static void respostaAcessoSala(JSONObject sala){
+    private void receberDiscussao(JSONObject discussao){
+        JSONArray users = discussao.getJSONArray("usuarios");
+        for(int i = 0; i < users.length(); i++){
+            usuariosConectados.add(users.getString(i));
+        }
+        viewdiscussao.setVisible(true);
+    }
+    
+    private void receberMensagem(JSONObject mensagem){
+        
+    }
+    
+    private static void receberSala(JSONObject sala){
         sala.remove("tipo");
         infoSalas.add(sala);
         qtdSalas = qtdSalas + 1;

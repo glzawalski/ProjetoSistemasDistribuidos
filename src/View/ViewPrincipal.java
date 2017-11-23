@@ -17,6 +17,7 @@ public class ViewPrincipal extends JFrame {
     private DefaultTableModel modeloTabelaSalas;
     private DefaultTableModel modeloTabelaUsuarios;
     private ModelCliente cliente;
+    private ViewDiscussao viewdiscussao;
     
     public ViewPrincipal() throws InterruptedException {
         initComponents();
@@ -39,6 +40,9 @@ public class ViewPrincipal extends JFrame {
         buttonLogout = new javax.swing.JButton();
         buttonCriarSala = new javax.swing.JButton();
         deslogado = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        buttonAcessarSala = new javax.swing.JButton();
+        IDSalaField = new javax.swing.JFormattedTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -74,25 +78,40 @@ public class ViewPrincipal extends JFrame {
 
         deslogado.setFont(new java.awt.Font("Comic Sans MS", 1, 18)); // NOI18N
         deslogado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        deslogado.setText("DESCONECTADO");
-        deslogado.setEnabled(false);
+
+        jLabel1.setText("ID da Sala:");
+
+        buttonAcessarSala.setText("Conectar");
+        buttonAcessarSala.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonAcessarSalaActionPerformed(evt);
+            }
+        });
+
+        IDSalaField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addGroup(layout.createSequentialGroup()
                             .addComponent(LabelUser, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGap(127, 127, 127)
                             .addComponent(buttonLogout))
-                        .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(buttonCriarSala)
-                    .addComponent(deslogado, javax.swing.GroupLayout.PREFERRED_SIZE, 425, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(28, Short.MAX_VALUE))
+                        .addComponent(buttonCriarSala)
+                        .addComponent(deslogado, javax.swing.GroupLayout.PREFERRED_SIZE, 425, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(IDSalaField, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(buttonAcessarSala))
+                    .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -102,11 +121,16 @@ public class ViewPrincipal extends JFrame {
                     .addComponent(LabelUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(buttonLogout, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonCriarSala, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(23, 23, 23)
+                .addComponent(buttonCriarSala)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(paneSalas, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(26, 26, 26)
-                .addComponent(deslogado)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(buttonAcessarSala)
+                    .addComponent(IDSalaField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+                .addComponent(deslogado, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -121,6 +145,10 @@ public class ViewPrincipal extends JFrame {
     private void buttonCriarSalaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCriarSalaActionPerformed
         new ViewCriarSala(cliente).setVisible(true);
     }//GEN-LAST:event_buttonCriarSalaActionPerformed
+
+    private void buttonAcessarSalaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAcessarSalaActionPerformed
+        cliente.acessarSala(Integer.parseInt(IDSalaField.getText()));
+    }//GEN-LAST:event_buttonAcessarSalaActionPerformed
     
     public void atualizarUser(String username){
         LabelUser.setText(username);
@@ -135,14 +163,17 @@ public class ViewPrincipal extends JFrame {
         buttonCriarSala.setEnabled(false);
         buttonLogout.setEnabled(false);
         tabelaSalas.setEnabled(false);
-        deslogado.setEnabled(true);
+        deslogado.setText("DESCONECTADO");
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JFormattedTextField IDSalaField;
     private javax.swing.JLabel LabelUser;
+    private javax.swing.JButton buttonAcessarSala;
     private javax.swing.JButton buttonCriarSala;
     private javax.swing.JButton buttonLogout;
     private javax.swing.JLabel deslogado;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane paneSalas;
     private javax.swing.JTable tabelaSalas;
     // End of variables declaration//GEN-END:variables
