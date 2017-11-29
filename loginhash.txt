@@ -1,2 +1,12 @@
-{"ra":"123","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3","nome":"Vithor"}
-{"ra":"12345","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3","nome":"Gabriel"}
+{"nome":"Cauê Felchar","ra":"1687638","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Vithor Tozetto","ra":"1687824","periodo": 7,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Felipe Soares","ra":"1600001","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Victor Muniz","ra":"1687816","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Rodrigo Nairnei","ra":"1488635","periodo": 6,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Gabriel Levis","ra":"1371886","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Rafael Koteski","ra":"1591860","periodo": 7,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"William Takeshi","ra":"1590529","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Bruno Chagas","ra":"1592130","periodo": 7,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Diego Augusto","ra":"1695738","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Tiago Sanches","ra":"1687794","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Fernando Favero","ra":"1547984","periodo": 5,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}

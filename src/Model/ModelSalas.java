@@ -16,10 +16,12 @@ public class ModelSalas {
     private JSONObject infoSalas;
     private ArrayList<JSONObject> mensagens;
     private ArrayList<ModelUsuarioConectado> usuariosConectados;
+    private ArrayList<Integer> votos;
 
     public ModelSalas() {
         mensagens = new ArrayList<>();
         usuariosConectados = new ArrayList<>();
+        votos = new ArrayList<>();
     }
     /**
      * @return the infoSalas
@@ -69,5 +71,27 @@ public class ModelSalas {
     
     public void addUsuariosConectados(ModelUsuarioConectado novoUsuario) {
         usuariosConectados.add(novoUsuario);
+    }
+
+    /**
+     * @return the votos
+     */
+    public ArrayList<Integer> getVotos() {
+        return votos;
+    }
+
+    /**
+     * @param votos the votos to set
+     */
+    public void setVotos(ArrayList<Integer> votos) {
+        this.votos = votos;
+    }
+    
+    public void addOpcaoVoto() {
+        votos.add(0);
+    }
+    
+    public void addVoto(int index) {
+        votos.set(index, votos.get(index) + 1);
     }
 }
