@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -49,12 +50,6 @@ public class ServidorUDP {
             threadChecagemSalas();
         }
     };
-    
-    Runnable ping = new Runnable() {
-        public void run() {
-            //thread ping individual
-        }
-    };
 
     public ServidorUDP() {
         infoSalas = new ArrayList();
@@ -62,6 +57,7 @@ public class ServidorUDP {
         inicializarSalas();
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(checagemSala, 0, 1, TimeUnit.MINUTES);
+        contagemPing();
     }
     
     public int getPorta() {
@@ -194,7 +190,7 @@ public class ServidorUDP {
                             //10 = conexaoChat(); break;
                             case 11: logoutSala(request); break; 
                             //12 = mensagemChat(); break;
-                            //13 = pedidoMensagemEspecifica(); break;
+                            case 13: pedidoMensagemEspecifica(request, JSONReceived); break;
                             case 14: mensagemChatServidor(request, JSONReceived); break;
                             case 15: computarVoto(request, JSONReceived); break;
                             case 16: iniciarPing(request, JSONReceived); break;
@@ -260,6 +256,9 @@ public class ServidorUDP {
                         fechamentoSala.put("status", false);
                         substituirSalaArquivo(s.getInfoSalas(), fechamentoSala);
                         s.setInfoSalas(fechamentoSala);
+                        for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                            enviarStatusVotacao(u.getEndrecoIP(), u.getPorta(), s);
+                        }
                     }
                 }
             }
@@ -466,14 +465,15 @@ public class ServidorUDP {
                 }
                 histSala.put("usuarios", usuariosSala);
                 byte[] buffer = new byte[1024];
-                    buffer = histSala.toString().getBytes();
-                    try {
-                        DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-                        socketServidor.send(reply);
-                        System.out.println("informacoes enviadas: " + histSala);
-                    } catch (IOException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                buffer = histSala.toString().getBytes();
+                try {
+                    DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                    socketServidor.send(reply);
+                    System.out.println("informacoes enviadas: " + histSala);
+                } catch (IOException ex) {
+                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                enviarStatusVotacao(request.getAddress(), request.getPort(), s);
                 streamMensagensSala(request, s.getMensagens());
             }
         }
@@ -501,7 +501,7 @@ public class ServidorUDP {
         }
     }
     
-    private void atualizacaoUsuariosSala(ModelSalas s, ModelUsuarioConectado novoAcesso, boolean adicionar) {
+    private static void atualizacaoUsuariosSala(ModelSalas s, ModelUsuarioConectado novoAcesso, boolean adicionar) {
         System.out.println("                        atualizando lista de usuarios da sala...");
         JSONObject novoConectadoSala = new JSONObject();
         novoConectadoSala.put("tipo", 10);
@@ -522,6 +522,38 @@ public class ServidorUDP {
         }
     }
     
+    public static void enviarStatusVotacao(InetAddress address, int port, ModelSalas s) {
+        JSONObject votacao = new JSONObject();
+        votacao.put("tipo", 9);
+        if (s.getInfoSalas().getBoolean("status")) {
+            votacao.put("acabou", true);
+        } else {
+            votacao.put("acabou", false);
+        }
+        JSONArray opcoes = new JSONArray();
+        for (Object o : s.getInfoSalas().getJSONArray("opcoes")) {
+            String nomeOpcao = new JSONObject(o.toString()).getString("nome");
+            int qtdVotos = 0;
+            for (JSONObject jo : s.getVotos()) {
+                if (jo.getString("opcao").equals(nomeOpcao)) {
+                    qtdVotos = qtdVotos + 1;
+                }
+            }
+            JSONObject opcao = new JSONObject();
+            opcao.put(nomeOpcao, qtdVotos);
+            opcoes.put(opcao);
+        }
+        byte[] buffer = new byte[1024];
+        buffer = votacao.toString().getBytes();
+        try {
+            DatagramPacket reply = new DatagramPacket(buffer, buffer.length, address, port);
+            socketServidor.send(reply);
+            System.out.println("status votacao enviada: " + votacao.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     private void streamMensagensSala(DatagramPacket request, ArrayList<JSONObject> mensagens) {
         new Thread() {
             public void run() {
@@ -537,6 +569,24 @@ public class ServidorUDP {
                     } catch (IOException ex) {
                         Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                }
+            }
+        }.start();
+    }
+    
+    private void pedidoMensagemEspecifica(DatagramPacket request, JSONObject received) {
+        new Thread() {
+            public void run() {
+                ModelSalas sala = infoSalas.get(received.getInt("id_sala"));
+                JSONObject m = new JSONObject(sala.getMensagens().get(received.getInt("id_msg")).toString());
+                byte[] buffer = new byte[1024];
+                buffer = m.toString().getBytes();
+                try {
+                    DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+                    socketServidor.send(reply);
+                    System.out.println("mensagem de chat enviada: " + m);
+                } catch (IOException ex) {
+                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }.start();
@@ -696,38 +746,59 @@ public class ServidorUDP {
     }
     
     public static void iniciarPing(DatagramPacket request, JSONObject received) {
-        ModelSalas sala = null;
-        for (ModelSalas s : infoSalas) {
-            if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
-                sala = s;
+        for (ModelUsuarioConectado u : usuariosConectados) {
+            if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
+                u.setAtivo(true);
                 break;
             }
         }
-        if (sala != null) {
-            for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
-                if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
-                    u.setAtivo(true);
+        if (received.getInt("sala") != -1) {
+            ModelSalas sala = null;
+            for (ModelSalas s : infoSalas) {
+                if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
+                    sala = s;
+                    break;
+                }
+            }
+            if (sala != null) {
+                for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
+                    if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
+                        u.setAtivo(true);
+                    }
                 }
             }
         }
     }
     
-    public static void contagemPing(DatagramPacket request, JSONObject received) {
+    //contagem de ping iniciada pelo servidor, precisa kickar usuarios inativos do servidor
+    public static void contagemPing() {
         new Thread() {
             public void run() {
                 while (true) {
                     try {
+                        for (ModelUsuarioConectado u : usuariosConectados) {
+                            u.setAtivo(false);
+                        }
                         for (ModelSalas s : infoSalas) {
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
                                 u.setAtivo(false);
                             }
                         }
-                        Thread.sleep(10000);
+                        Thread.sleep(30000);
                         for (ModelSalas s : infoSalas) {
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
                                 if (!u.isAtivo()) {
-                                    
+                                    s.getUsuariosConectados().remove(u);
+                                    atualizacaoUsuariosSala(s, u, false);
+                                    break;
                                 }
+                            }
+                        }
+                        for (ModelUsuarioConectado u : usuariosConectados) {
+                            if (!u.isAtivo()) {
+                                usuariosConectados.remove(u);
+                                updateModeloTabelaUsuarios();
+                                break;
                             }
                         }
                     } catch (InterruptedException ex) {
