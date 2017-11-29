@@ -152,6 +152,10 @@ public void atualizarMensagens(String mensagem, String criador){
     jMessagePane.setStyledDocument(doc);
 }
 
+public void limparMensagens(){
+    doc = new DefaultStyledDocument();
+}
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonEnviar;

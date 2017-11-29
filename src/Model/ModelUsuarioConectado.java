@@ -16,6 +16,7 @@ public class ModelUsuarioConectado {
     private String ra;
     private InetAddress endrecoIP;
     private int porta;
+    private boolean ativo;
 
     public ModelUsuarioConectado(String nome, String ra, InetAddress enderecoIP, int porta) {
         this.nome = nome;
@@ -60,5 +61,19 @@ public class ModelUsuarioConectado {
      */
     public void setRa(String ra) {
         this.ra = ra;
+    }
+
+    /**
+     * @return the ativo
+     */
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    /**
+     * @param ativo the ativo to set
+     */
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 }

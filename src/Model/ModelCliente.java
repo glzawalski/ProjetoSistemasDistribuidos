@@ -47,6 +47,7 @@ public class ModelCliente extends Thread {
     private static DatagramSocket socketCliente = null;
     private static int qtdSalas; 
     private int porta;
+    private int id_Sala;
     private InetAddress host;
     private String senha, login, username;
     private static ArrayList<JSONObject> infoSalas;
@@ -56,6 +57,7 @@ public class ModelCliente extends Thread {
     private static ViewPrincipal GUICliente;
     private static ViewDiscussao viewdiscussao;
     private StyledDocument doc;
+    private boolean pingState;
     
     public ModelCliente(ViewPrincipal view, ViewDiscussao discussao) {
         infoSalas = new ArrayList();
@@ -78,6 +80,14 @@ public class ModelCliente extends Thread {
     
     public void setQtdSalas(int aQtdSalas) {
         qtdSalas = aQtdSalas;
+    }
+    
+    public int getIdSala() {
+        return id_Sala;
+    }
+    
+    public void setIdSala(int aid_sala) {
+        id_Sala = aid_sala;
     }
     
     public int getPorta() {
@@ -190,6 +200,7 @@ public class ModelCliente extends Thread {
     public void init(){
         initModeloTabelaSalas();
         initModeloTabelaUsuarios();
+        pingState = false;
         new Thread() {
             public void run() {
                 try {
@@ -303,6 +314,10 @@ public class ModelCliente extends Thread {
     }
     
     public void sairSala(){
+        viewdiscussao.limparMensagens();
+        usuariosConectados.clear();
+        updateModeloTabelaUsuarios();
+                
         JSONObject JSONsair = new JSONObject();
         JSONsair.put("tipo",11);
         
@@ -318,6 +333,7 @@ public class ModelCliente extends Thread {
         }
         viewdiscussao.setVisible(false);
         System.out.println("Mensagem enviada: " + JSONsair);
+        pingState = false;
     }
     
     public void enviarMsg(String mensagem){
@@ -339,23 +355,8 @@ public class ModelCliente extends Thread {
         System.out.println("Mensagem enviada: " + msg);
     }
     
-    private static void loginErrado(){
-        JOptionPane.showMessageDialog(null, "Erro de login", "Erro", JOptionPane.ERROR_MESSAGE);
-    }
-    
-    private void loginSucedido(JSONObject login){
-        JOptionPane.showMessageDialog(null, login, "Login Sucedido", JOptionPane.INFORMATION_MESSAGE);
-        setUsername(login.getString("nome"));
-        GUICliente.atualizarUser(username);
-    }
-    
-    public void criarSala(String nome,String desc){
-        JSONObject JSONSala = new JSONObject();
+    public void criarSala(JSONObject JSONSala){
         JSONSala.put("tipo", 6);
-        JSONSala.put("nome", nome);
-        JSONSala.put("descricao", desc);
-        JSONSala.put("fim", "Tempo!");
-        JSONSala.put("opcoes", "hi");
         
         byte[] buffer = new byte[1024];
         buffer = JSONSala.toString().getBytes();
@@ -368,6 +369,49 @@ public class ModelCliente extends Thread {
         }
     }
     
+    public void ping(){
+        new Thread(){
+            @Override
+            public void run(){
+                while(pingState){
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    JSONObject JSONPing = new JSONObject();
+                    JSONPing.put("tipo", 16);
+                    JSONPing.put("sala", id_Sala);
+
+                    byte[] buffer = new byte[2048];
+                    buffer = JSONPing.toString().getBytes();
+
+                    DatagramPacket msgAcessar = new DatagramPacket(buffer, buffer.length, host, porta);
+
+                    try {
+                        socketCliente.send(msgAcessar);
+                        System.out.println("Mensagem enviada: " + JSONPing);
+                        Thread.sleep(5000);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }.start();
+    }
+    
+    private static void loginErrado(){
+        JOptionPane.showMessageDialog(null, "Erro de login", "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void loginSucedido(JSONObject login){
+        JOptionPane.showMessageDialog(null, login, "Login Sucedido", JOptionPane.INFORMATION_MESSAGE);
+        setUsername(login.getString("nome"));
+        GUICliente.atualizarUser(username);
+    }
+    
     private void receberDiscussao(JSONObject discussao){
         JSONArray users = discussao.getJSONArray("usuarios");
         for(int i = 0; i < users.length(); i++){
@@ -377,6 +421,8 @@ public class ModelCliente extends Thread {
         updateModeloTabelaUsuarios();
         viewdiscussao.setVisible(true);
         viewdiscussao.atualizarListaUsers(modeloTabelaUsuarios);
+        pingState = true;
+        ping();
     }
     
     private void atualizarUsers(JSONObject user){
@@ -386,6 +432,7 @@ public class ModelCliente extends Thread {
             JSONObject usuario = new JSONObject();
             usuario.put("nome", user.getString("nome"));
             usuario.put("ra", user.getString("ra"));
+            usuariosConectados.add(usuario);
         }else{
             Iterator<JSONObject> it = usuariosConectados.iterator();
             JSONObject aux = new JSONObject();
@@ -399,6 +446,7 @@ public class ModelCliente extends Thread {
                 i++;
             }
         }
+        updateModeloTabelaUsuarios();
     }
     
     private void receberMensagem(JSONObject mensagem){

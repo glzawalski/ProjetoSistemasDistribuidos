@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -53,7 +52,7 @@ public class ServidorUDP {
     
     Runnable ping = new Runnable() {
         public void run() {
-            
+            //thread ping individual
         }
     };
 
@@ -198,7 +197,7 @@ public class ServidorUDP {
                             //13 = pedidoMensagemEspecifica(); break;
                             case 14: mensagemChatServidor(request, JSONReceived); break;
                             case 15: computarVoto(request, JSONReceived); break;
-                            //16 = ping(); break;
+                            case 16: iniciarPing(request, JSONReceived); break;
                             default: mensagemMalFormada(request, JSONReceived); break;
                         } 
                     }
@@ -410,9 +409,6 @@ public class ServidorUDP {
         ModelSalas novaSala = new ModelSalas();
         novaSala.setInfoSalas(received);
         infoSalas.add(novaSala);
-        for (Object o : received.getJSONArray("opcoes")) {
-            infoSalas.get(infoSalas.indexOf(novaSala)).addOpcaoVoto();
-        }
         received.put("tamanho", infoSalas.size());
         received.put("tipo", 4);
         byte[] buffer = new byte[1024];
@@ -449,6 +445,7 @@ public class ServidorUDP {
                 for (ModelUsuarioConectado u : usuariosConectados) {
                     if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                         novoAcesso = u;
+                        novoAcesso.setAtivo(true);
                         break;
                     }
                 }
@@ -460,10 +457,12 @@ public class ServidorUDP {
                 histSala.put("tamanho", s.getMensagens().size());
                 ArrayList<JSONObject> usuariosSala = new ArrayList<>();
                 for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
-                    JSONObject uc = new JSONObject();
-                    uc.put("nome", u.getNome());
-                    uc.put("ra", u.getRa());
-                    usuariosSala.add(uc);
+                    if (u.isAtivo()) {
+                        JSONObject uc = new JSONObject();
+                        uc.put("nome", u.getNome());
+                        uc.put("ra", u.getRa());
+                        usuariosSala.add(uc);
+                    }
                 }
                 histSala.put("usuarios", usuariosSala);
                 byte[] buffer = new byte[1024];
@@ -587,19 +586,34 @@ public class ServidorUDP {
             }
         }
         ModelUsuarioConectado usuario = null;
-        for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
-            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
-                usuario = u;
-                break;
+        if (sala != null) {
+            for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
+                if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort() && u.isAtivo()) {
+                    usuario = u;
+                    break;
+                }
             }
         }
-        int index = 0;
-        for (Object o : sala.getInfoSalas().getJSONArray("opcoes")) {
-            if (received.getString("opcao").equals(new JSONObject(o.toString()).getString("opcao"))) {
-                sala.addVoto(index);
-                break;
+        if (usuario != null) {
+            for (Object o : sala.getInfoSalas().getJSONArray("opcoes")) {
+                if (received.getString("opcao").equals(new JSONObject(o.toString()).getString("opcao"))) {
+                    JSONObject votoUsuario = new JSONObject();
+                    votoUsuario.put("ra", usuario.getRa());
+                    votoUsuario.put("voto", received.getString("opcao"));
+                    boolean flag = false;
+                    for (JSONObject jo : sala.getVotos()) {
+                        if (jo.getString("ra").equals(votoUsuario.getString("ra"))) {
+                            flag = true;
+                            jo.remove("opcao");
+                            jo.put("opcao", received.getString("opcao"));
+                        }
+                    }
+                    if (flag == false) {
+                        sala.addVoto(votoUsuario);
+                    }
+                    break;
+                }
             }
-            index = index + 1;
         }
     }
     
@@ -681,7 +695,46 @@ public class ServidorUDP {
         }
     }
     
-    public static void iniciarPing() {
-        
+    public static void iniciarPing(DatagramPacket request, JSONObject received) {
+        ModelSalas sala = null;
+        for (ModelSalas s : infoSalas) {
+            if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
+                sala = s;
+                break;
+            }
+        }
+        if (sala != null) {
+            for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
+                if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
+                    u.setAtivo(true);
+                }
+            }
+        }
+    }
+    
+    public static void contagemPing(DatagramPacket request, JSONObject received) {
+        new Thread() {
+            public void run() {
+                while (true) {
+                    try {
+                        for (ModelSalas s : infoSalas) {
+                            for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                                u.setAtivo(false);
+                            }
+                        }
+                        Thread.sleep(10000);
+                        for (ModelSalas s : infoSalas) {
+                            for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                                if (!u.isAtivo()) {
+                                    
+                                }
+                            }
+                        }
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }.start();
     }
 }

@@ -15,8 +15,8 @@ import org.json.JSONObject;
 public class ModelSalas {
     private JSONObject infoSalas;
     private ArrayList<JSONObject> mensagens;
+    private ArrayList<JSONObject> votos;
     private ArrayList<ModelUsuarioConectado> usuariosConectados;
-    private ArrayList<Integer> votos;
 
     public ModelSalas() {
         mensagens = new ArrayList<>();
@@ -76,22 +76,18 @@ public class ModelSalas {
     /**
      * @return the votos
      */
-    public ArrayList<Integer> getVotos() {
+    public ArrayList<JSONObject> getVotos() {
         return votos;
     }
 
     /**
      * @param votos the votos to set
      */
-    public void setVotos(ArrayList<Integer> votos) {
+    public void setVotos(ArrayList<JSONObject> votos) {
         this.votos = votos;
     }
     
-    public void addOpcaoVoto() {
-        votos.add(0);
-    }
-    
-    public void addVoto(int index) {
-        votos.set(index, votos.get(index) + 1);
+    public void addVoto(JSONObject voto) {
+        votos.add(voto);
     }
 }

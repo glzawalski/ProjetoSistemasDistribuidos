@@ -6,6 +6,23 @@
 package View;
 
 import Model.ModelCliente;
+import java.awt.Color;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  *
@@ -14,10 +31,20 @@ import Model.ModelCliente;
 public class ViewCriarSala extends javax.swing.JFrame {
 
     private ModelCliente cliente;
+    private StyledDocument doc;
+    private Style style;
+    private JSONArray opcoes;
+    private ArrayList<JSONObject> options;
     
     public ViewCriarSala(ModelCliente client) {
         initComponents();
         cliente = client;
+        options = new ArrayList();
+        doc = new DefaultStyledDocument();
+        StyleContext context = new StyleContext();
+        style = context.addStyle("test", null);
+        StyleConstants.setForeground(style, Color.BLACK);
+        jMessagePane.setEditable(false);
     }
 
     /**
@@ -33,6 +60,14 @@ public class ViewCriarSala extends javax.swing.JFrame {
         textDesc = new javax.swing.JTextField();
         buttonCancelar = new javax.swing.JButton();
         buttonCriar = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jData = new javax.swing.JFormattedTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jOptVoto = new javax.swing.JTextField();
+        jaddopt = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jMessagePane = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -41,6 +76,11 @@ public class ViewCriarSala extends javax.swing.JFrame {
         jLabel2.setText("Nome:");
 
         buttonCancelar.setText("Cancelar");
+        buttonCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCancelarActionPerformed(evt);
+            }
+        });
 
         buttonCriar.setText("Criar");
         buttonCriar.addActionListener(new java.awt.event.ActionListener() {
@@ -49,54 +89,148 @@ public class ViewCriarSala extends javax.swing.JFrame {
             }
         });
 
+        jLabel3.setText("Encerramento:");
+
+        jData.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter()));
+        jData.setText("20/10/2018");
+
+        jLabel4.setText("Data:");
+
+        jLabel6.setText("Opções para voto:");
+
+        jaddopt.setText("Adicionar");
+        jaddopt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jaddoptActionPerformed(evt);
+            }
+        });
+
+        jScrollPane1.setViewportView(jMessagePane);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(textNomeSala, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(11, 11, 11)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(textNomeSala))
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(textDesc, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jLabel3))
+                                    .addComponent(jLabel6)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jOptVoto, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jaddopt))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jData, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 17, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(textDesc, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(33, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(67, 67, 67)
-                .addComponent(buttonCriar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(buttonCancelar)
-                .addGap(58, 58, 58))
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane1)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(buttonCriar)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(buttonCancelar)))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(43, 43, 43)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(textNomeSala, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(28, 28, 28)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(textDesc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(45, 45, 45)
+                    .addComponent(textDesc, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonCancelar)
-                    .addComponent(buttonCriar))
-                .addContainerGap(103, Short.MAX_VALUE))
+                    .addComponent(jData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jOptVoto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jaddopt))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(buttonCriar)
+                    .addComponent(buttonCancelar))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonCriarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCriarActionPerformed
-        cliente.criarSala(textNomeSala.getText(), textDesc.getText());
+        //cliente.criarSala(textNomeSala.getText(), textDesc.getText());
+        JSONObject sala = new JSONObject();
+        sala.put("nome",textNomeSala.getText());
+        sala.put("descricao", textDesc.getText());
+        DateFormat dforiginal = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat dfnovo = new SimpleDateFormat("yyyy-MM-dd");
+        Date data = new Date();
+        String realDate = "";
+        
+        try {
+            data = dforiginal.parse(jData.getText());
+            realDate = dfnovo.format(data) + "T23:59:59Z";
+        } catch (ParseException ex) {
+            Logger.getLogger(ViewCriarSala.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Instant stringData = Instant.parse(realDate);
+        Long thing = stringData.toEpochMilli() / 1000;
+        //System.out.println(realDate + "   " +thing.toString());
+        sala.put("fim",thing.toString());
+        opcoes = new JSONArray(options);
+        sala.put("opcoes",opcoes);
         this.setVisible(false);
+        //System.out.println(sala);
+        cliente.criarSala(sala);
     }//GEN-LAST:event_buttonCriarActionPerformed
+
+    private void jaddoptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jaddoptActionPerformed
+        String option = jOptVoto.getText();
+        if(option.length() > 0){
+            jOptVoto.setText("");
+            JSONObject newOpcao = new JSONObject();
+            newOpcao.put("nome", option);
+            options.add(newOpcao);
+
+            try {
+                doc.insertString(doc.getLength(), option + "\n", style);
+            } catch (BadLocationException ex) {
+                Logger.getLogger(ViewCriarSala.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            jMessagePane.setStyledDocument(doc);
+        }
+    }//GEN-LAST:event_jaddoptActionPerformed
+
+    private void buttonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelarActionPerformed
+        this.setVisible(false);
+    }//GEN-LAST:event_buttonCancelarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -105,8 +239,16 @@ public class ViewCriarSala extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonCancelar;
     private javax.swing.JButton buttonCriar;
+    private javax.swing.JFormattedTextField jData;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JTextPane jMessagePane;
+    private javax.swing.JTextField jOptVoto;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton jaddopt;
     private javax.swing.JTextField textDesc;
     private javax.swing.JTextField textNomeSala;
     // End of variables declaration//GEN-END:variables

@@ -147,7 +147,9 @@ public class ViewPrincipal extends JFrame {
     }//GEN-LAST:event_buttonCriarSalaActionPerformed
 
     private void buttonAcessarSalaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonAcessarSalaActionPerformed
-        cliente.acessarSala(Integer.parseInt(IDSalaField.getText()));
+        int ID_sala = Integer.parseInt(IDSalaField.getText());
+        cliente.acessarSala(ID_sala);
+        cliente.setIdSala(ID_sala);
     }//GEN-LAST:event_buttonAcessarSalaActionPerformed
     
     public void atualizarUser(String username){
