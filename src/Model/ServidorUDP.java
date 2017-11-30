@@ -443,7 +443,7 @@ public class ServidorUDP {
                 ModelUsuarioConectado novoAcesso = null;
                 for (ModelUsuarioConectado u : usuariosConectados) {
                     if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
-                        novoAcesso = u;
+                        novoAcesso = new ModelUsuarioConectado(u.getNome(), u.getRa(), u.getEndrecoIP(), u.getPorta());
                         novoAcesso.setAtivo(true);
                         break;
                     }
@@ -526,9 +526,9 @@ public class ServidorUDP {
         JSONObject votacao = new JSONObject();
         votacao.put("tipo", 9);
         if (s.getInfoSalas().getBoolean("status")) {
-            votacao.put("acabou", true);
-        } else {
             votacao.put("acabou", false);
+        } else {
+            votacao.put("acabou", true);
         }
         JSONArray opcoes = new JSONArray();
         for (Object o : s.getInfoSalas().getJSONArray("opcoes")) {
@@ -543,6 +543,7 @@ public class ServidorUDP {
             opcao.put(nomeOpcao, qtdVotos);
             opcoes.put(opcao);
         }
+        votacao.put("resultados", opcoes);
         byte[] buffer = new byte[1024];
         buffer = votacao.toString().getBytes();
         try {

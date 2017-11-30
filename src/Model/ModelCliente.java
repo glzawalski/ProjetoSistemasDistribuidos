@@ -24,7 +24,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -52,12 +54,13 @@ public class ModelCliente extends Thread {
     private String senha, login, username;
     private static ArrayList<JSONObject> infoSalas;
     private static ArrayList<JSONObject> usuariosConectados;
+    private static ArrayList<JSONObject> opcoesVotos;
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
+    private static DefaultTableModel modeloTabelaVotos;
     private static ViewPrincipal GUICliente;
     private static ViewDiscussao viewdiscussao;
     private StyledDocument doc;
-    private boolean pingState;
     
     public ModelCliente(ViewPrincipal view, ViewDiscussao discussao) {
         infoSalas = new ArrayList();
@@ -141,6 +144,10 @@ public class ModelCliente extends Thread {
     public DefaultTableModel getModeloTabelaUsuarios() {
         return modeloTabelaUsuarios;
     }
+    
+    public void setModeloTabelaVotos(DefaultTableModel modeloTabela) {
+        this.modeloTabelaVotos = modeloTabela;
+    }
 
     public void setModeloTabelaUsuarios(DefaultTableModel modeloTabelaUsuarios) {
         this.modeloTabelaUsuarios = modeloTabelaUsuarios;
@@ -154,6 +161,11 @@ public class ModelCliente extends Thread {
     public void initModeloTabelaUsuarios() {
         setModeloTabelaUsuarios(new javax.swing.table.DefaultTableModel(
                 new Object[][]{}, new String[]{"Nome","RA"}));
+    }
+    
+    public void initModeloTabelaVotos() {
+        setModeloTabelaUsuarios(new javax.swing.table.DefaultTableModel(
+                new Object[][]{}, new String[]{"Opção","Votos"}));
     }
     
     private static void updateModeloTabelaSalas() {
@@ -187,8 +199,25 @@ public class ModelCliente extends Thread {
 
         while (index < usuariosConectados.size()) {
             rowData[0] = usuariosConectados.get(index).getString("nome");
-            rowData[1] = "teste";//usuariosConectados.get(index).getString("ra");
+            rowData[1] = usuariosConectados.get(index).getString("ra");
             modeloTabelaUsuarios.addRow(rowData);
+            index++;
+        }
+    }
+    
+    private static void updateModeloTabelaVotos() {
+        String rowData[] = new String[2];
+        int index = 0;
+        if (modeloTabelaVotos.getRowCount() > 0) {
+            for (int i = modeloTabelaVotos.getRowCount() - 1; i > -1; i--) {
+                modeloTabelaVotos.removeRow(i);
+            }
+        }
+
+        while (index < opcoesVotos.size()) {
+            rowData[0] = "teste";
+            rowData[1] = "teste";//usuariosConectados.get(index).getString("ra");
+            modeloTabelaVotos.addRow(rowData);
             index++;
         }
     }
@@ -200,7 +229,8 @@ public class ModelCliente extends Thread {
     public void init(){
         initModeloTabelaSalas();
         initModeloTabelaUsuarios();
-        pingState = false;
+        initModeloTabelaVotos();
+        id_Sala = -1;
         new Thread() {
             public void run() {
                 try {
@@ -209,7 +239,6 @@ public class ModelCliente extends Thread {
                      socketCliente = new DatagramSocket();
                      doc = new DefaultStyledDocument();
 
-                     System.out.println("Numero de salas abertas: " + qtdSalas);
                      byte[] buffer = new byte[1024];
                      while (!socketCliente.isClosed()) {
                         DatagramPacket request = new DatagramPacket(buffer, buffer.length);
@@ -223,6 +252,7 @@ public class ModelCliente extends Thread {
                             case 2: loginSucedido(JSONReceived); break;
                             case 4: receberSala(JSONReceived); break;
                             case 8: receberDiscussao(JSONReceived); break;
+                            case 9: receberVotacao(JSONReceived);break;
                             case 10: atualizarUsers(JSONReceived); break;
                             case 12: receberMensagem(JSONReceived); break;
                             default: System.out.println("Mensagem com Id não identificado");break;
@@ -333,7 +363,7 @@ public class ModelCliente extends Thread {
         }
         viewdiscussao.setVisible(false);
         System.out.println("Mensagem enviada: " + JSONsair);
-        pingState = false;
+        id_Sala = -1;
     }
     
     public void enviarMsg(String mensagem){
@@ -373,12 +403,7 @@ public class ModelCliente extends Thread {
         new Thread(){
             @Override
             public void run(){
-                while(pingState){
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                while(true){
                     JSONObject JSONPing = new JSONObject();
                     JSONPing.put("tipo", 16);
                     JSONPing.put("sala", id_Sala);
@@ -386,12 +411,12 @@ public class ModelCliente extends Thread {
                     byte[] buffer = new byte[2048];
                     buffer = JSONPing.toString().getBytes();
 
-                    DatagramPacket msgAcessar = new DatagramPacket(buffer, buffer.length, host, porta);
+                    DatagramPacket msgPing = new DatagramPacket(buffer, buffer.length, host, porta);
 
                     try {
-                        socketCliente.send(msgAcessar);
+                        socketCliente.send(msgPing);
                         System.out.println("Mensagem enviada: " + JSONPing);
-                        Thread.sleep(5000);
+                        Thread.sleep(9500);
                     } catch (IOException ex) {
                         Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (InterruptedException ex) {
@@ -410,6 +435,7 @@ public class ModelCliente extends Thread {
         JOptionPane.showMessageDialog(null, login, "Login Sucedido", JOptionPane.INFORMATION_MESSAGE);
         setUsername(login.getString("nome"));
         GUICliente.atualizarUser(username);
+        ping();
     }
     
     private void receberDiscussao(JSONObject discussao){
@@ -421,8 +447,29 @@ public class ModelCliente extends Thread {
         updateModeloTabelaUsuarios();
         viewdiscussao.setVisible(true);
         viewdiscussao.atualizarListaUsers(modeloTabelaUsuarios);
-        pingState = true;
-        ping();
+    }
+    
+    private void receberVotacao(JSONObject votacao){
+        JSONArray opcoes = votacao.getJSONArray("resultados");
+        JSONObject newOpcoes = new JSONObject(opcoes);
+        
+        Iterator keysToCopyIterator = newOpcoes.keys();
+        List<String> keysList = new ArrayList<String>();
+        while(keysToCopyIterator.hasNext()) {
+            String key = (String) keysToCopyIterator.next();
+            keysList.add(key);
+        }
+      
+        for(int i = 0; i < keysList.size(); i++){
+            JSONObject atual = new JSONObject();
+            String nome = keysList.get(i);
+            atual.put("nome", nome);
+            atual.put("votos", opcoes.getInt(i));
+            System.out.println(atual);
+        }
+        
+        //updateModeloTabelaVotos();
+        //viewdiscussao.atualizarListaVotos(modeloTabelaVotos);
     }
     
     private void atualizarUsers(JSONObject user){
@@ -442,6 +489,7 @@ public class ModelCliente extends Thread {
                 aux = it.next();
                 if(aux.getString("ra").equals(ra)){
                     usuariosConectados.remove(i);
+                    break;
                 }
                 i++;
             }
@@ -452,7 +500,10 @@ public class ModelCliente extends Thread {
     private void receberMensagem(JSONObject mensagem){
         String str = mensagem.getString("mensagem");
         String criador = mensagem.getString("criador");
-        viewdiscussao.atualizarMensagens(str, criador);
+        Long timestamp = Long.valueOf(mensagem.getString("timestamp"));
+        Date date = new Date(timestamp * 1000L);
+        
+        viewdiscussao.atualizarMensagens(str, criador, date);
     }
     
     private static void receberSala(JSONObject sala){

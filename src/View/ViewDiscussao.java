@@ -7,6 +7,9 @@ package View;
 
 import Model.ModelCliente;
 import java.awt.Color;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
@@ -24,9 +27,11 @@ import javax.swing.text.StyledDocument;
 public class ViewDiscussao extends javax.swing.JFrame {
 
     private DefaultTableModel modeloTabelaUsuarios;
+    private DefaultTableModel modeloTabelaVotos;
     private ModelCliente cliente;
     private StyledDocument doc;
     private Style style;
+    private DateFormat df;
     
     public ViewDiscussao() {
         initComponents();
@@ -35,6 +40,7 @@ public class ViewDiscussao extends javax.swing.JFrame {
         style = context.addStyle("test", null);
         StyleConstants.setForeground(style, Color.BLACK);
         jMessagePane.setEditable(false);
+        df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     }
     
     public void setCliente(ModelCliente client){
@@ -55,6 +61,8 @@ public class ViewDiscussao extends javax.swing.JFrame {
         jSairSala = new javax.swing.JButton();
         jMensagem = new javax.swing.JTextField();
         buttonEnviar = new javax.swing.JButton();
+        paneVotos = new javax.swing.JScrollPane();
+        tabelaVotos = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -88,42 +96,63 @@ public class ViewDiscussao extends javax.swing.JFrame {
             }
         });
 
+        tabelaVotos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        paneVotos.setViewportView(tabelaVotos);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jSairSala)
-                .addGap(41, 41, 41))
             .addGroup(layout.createSequentialGroup()
-                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(buttonEnviar)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                        .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(paneVotos, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                    .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(buttonEnviar)
+                                .addGap(0, 274, Short.MAX_VALUE))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jSairSala)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+                .addContainerGap()
                 .addComponent(jSairSala)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(paneVotos, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(20, 20, 20))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buttonEnviar))
-                .addGap(43, 43, 43))
+                .addContainerGap())
         );
 
         pack();
@@ -143,9 +172,16 @@ public void atualizarListaUsers(DefaultTableModel model){
     tabelaUsers.setModel(modeloTabelaUsuarios);
 }
 
-public void atualizarMensagens(String mensagem, String criador){
+public void atualizarListaVotos(DefaultTableModel model){
+    modeloTabelaVotos = model;
+    tabelaVotos.setModel(modeloTabelaVotos);
+}
+
+public void atualizarMensagens(String mensagem, String criador, Date time){
+    String stringdata = df.format(time);
+    String printThis = "(" + stringdata + ") " + criador + ":\n" + "                    " + mensagem + "\n";
     try {
-         doc.insertString(0, mensagem + "\n", style);
+         doc.insertString(doc.getLength(), printThis + "\n", style);
     } catch (BadLocationException ex) {
         Logger.getLogger(ViewDiscussao.class.getName()).log(Level.SEVERE, null, ex);
     }
@@ -164,6 +200,8 @@ public void limparMensagens(){
     private javax.swing.JButton jSairSala;
     private javax.swing.JScrollPane paneConversa;
     private javax.swing.JScrollPane paneUsers;
+    private javax.swing.JScrollPane paneVotos;
     private javax.swing.JTable tabelaUsers;
+    private javax.swing.JTable tabelaVotos;
     // End of variables declaration//GEN-END:variables
 }

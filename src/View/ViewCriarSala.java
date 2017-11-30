@@ -92,11 +92,6 @@ public class ViewCriarSala extends javax.swing.JFrame {
         jLabel3.setText("Encerramento:");
 
         jData.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("dd/MM/yyyy"))));
-        jData.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jDataActionPerformed(evt);
-            }
-        });
 
         jLabel4.setText("Data:");
 
@@ -235,10 +230,6 @@ public class ViewCriarSala extends javax.swing.JFrame {
     private void buttonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelarActionPerformed
         this.setVisible(false);
     }//GEN-LAST:event_buttonCancelarActionPerformed
-
-    private void jDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDataActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jDataActionPerformed
 
     /**
      * @param args the command line arguments
