@@ -440,17 +440,15 @@ public class ServidorUDP {
             ModelSalas s = iterator.next();
             if (s.getInfoSalas().getInt("id") == received.getInt("id")) {
                 System.out.println("sala encontrada, enviando informações da sala...");
-                ModelUsuarioConectado novoAcesso = null;
                 for (ModelUsuarioConectado u : usuariosConectados) {
                     if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
-                        novoAcesso = new ModelUsuarioConectado(u.getNome(), u.getRa(), u.getEndrecoIP(), u.getPorta());
-                        novoAcesso.setAtivo(true);
+                        u.setAtivo(true);
+                        atualizacaoUsuariosSala(s, u, true);
+                        System.out.println("            usuario adicionado");
+                        s.addUsuariosConectados(u);
                         break;
                     }
                 }
-                atualizacaoUsuariosSala(s, novoAcesso, true);
-                System.out.println("            usuario adicionado");
-                s.addUsuariosConectados(novoAcesso);
                 JSONObject histSala = new JSONObject();
                 histSala.put("tipo", 8);
                 histSala.put("tamanho", s.getMensagens().size());
