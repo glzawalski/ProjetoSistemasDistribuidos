@@ -1,2 +1,0 @@
-{"ra":"123","senha":"123","nome":"Vithor"}
-{"ra":"12345","senha":"12345","nome":"Gabriel"}
