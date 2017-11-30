@@ -63,6 +63,8 @@ public class ViewDiscussao extends javax.swing.JFrame {
         buttonEnviar = new javax.swing.JButton();
         paneVotos = new javax.swing.JScrollPane();
         tabelaVotos = new javax.swing.JTable();
+        jVotar = new javax.swing.JButton();
+        jtextoVoto = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -96,6 +98,8 @@ public class ViewDiscussao extends javax.swing.JFrame {
             }
         });
 
+        paneVotos.setAutoscrolls(true);
+
         tabelaVotos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -109,6 +113,15 @@ public class ViewDiscussao extends javax.swing.JFrame {
         ));
         paneVotos.setViewportView(tabelaVotos);
 
+        jVotar.setText("Votar");
+        jVotar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jVotarActionPerformed(evt);
+            }
+        });
+
+        jtextoVoto.setText("Você ainda não votou");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -118,17 +131,20 @@ public class ViewDiscussao extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(paneVotos, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                    .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 514, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(buttonEnviar)
-                                .addGap(0, 274, Short.MAX_VALUE))))
+                                .addComponent(buttonEnviar)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jVotar)
+                                .addGap(18, 18, 18)
+                                .addComponent(jtextoVoto, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(paneVotos, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jSairSala)))
@@ -140,19 +156,23 @@ public class ViewDiscussao extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jSairSala)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(buttonEnviar))
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(paneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(paneVotos, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(20, 20, 20))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(paneConversa, javax.swing.GroupLayout.PREFERRED_SIZE, 331, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonEnviar))
-                .addContainerGap())
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jVotar)
+                            .addComponent(jtextoVoto))
+                        .addGap(20, 20, 20))))
         );
 
         pack();
@@ -167,6 +187,16 @@ public class ViewDiscussao extends javax.swing.JFrame {
         jMensagem.setText("");
     }//GEN-LAST:event_buttonEnviarActionPerformed
 
+    private void jVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jVotarActionPerformed
+        int pos = tabelaVotos.getSelectedRow();
+        if(pos >= 0) cliente.votar(pos);
+        //System.out.println(pos);
+    }//GEN-LAST:event_jVotarActionPerformed
+
+public void atualizarVoto(String info){
+    jtextoVoto.setText("Você votou em: " + info);
+}
+    
 public void atualizarListaUsers(DefaultTableModel model){
     modeloTabelaUsuarios = model;
     tabelaUsers.setModel(modeloTabelaUsuarios);
@@ -198,6 +228,8 @@ public void limparMensagens(){
     private javax.swing.JTextField jMensagem;
     private javax.swing.JTextPane jMessagePane;
     private javax.swing.JButton jSairSala;
+    private javax.swing.JButton jVotar;
+    private javax.swing.JLabel jtextoVoto;
     private javax.swing.JScrollPane paneConversa;
     private javax.swing.JScrollPane paneUsers;
     private javax.swing.JScrollPane paneVotos;

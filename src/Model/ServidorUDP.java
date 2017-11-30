@@ -1,3 +1,7 @@
+//bugs : broadcast de votos recebe duas vezes -> limpar buffer cliente
+//       falha na atualização de troca de votos
+//todo : salvar votos em arquivo
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -316,6 +320,7 @@ public class ServidorUDP {
                         socketServidor.send(reply);
                         System.out.println("mensagem enviada: " + JSONRespostaLoginSucedido);
                         ModelUsuarioConectado novoUsuario = new ModelUsuarioConectado(user.getString("nome"), user.getString("ra"), request.getAddress(), request.getPort());
+                        novoUsuario.setAtivo(true);
                         usuariosConectados.add(novoUsuario);
                         updateModeloTabelaUsuarios();
                         streamSalas(request.getAddress(), request.getPort());
@@ -400,6 +405,7 @@ public class ServidorUDP {
                 criador = u.getNome();
             }
         }
+        System.out.println(criador);
         received.put("criador", criador);
         received.put("inicio", Long.toString(Instant.now().getEpochSecond()));
         received.put("status", true);
@@ -533,7 +539,7 @@ public class ServidorUDP {
             String nomeOpcao = new JSONObject(o.toString()).getString("nome");
             int qtdVotos = 0;
             for (JSONObject jo : s.getVotos()) {
-                if (jo.getString("opcao").equals(nomeOpcao)) {
+                if (jo.getString("voto").equals(nomeOpcao)) {
                     qtdVotos = qtdVotos + 1;
                 }
             }
@@ -627,40 +633,34 @@ public class ServidorUDP {
     }
     
     private static void computarVoto(DatagramPacket request, JSONObject received) {
-        ModelSalas sala = null;
         for (ModelSalas s : infoSalas) {
             if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
-                sala = s;
-                break;
-            }
-        }
-        ModelUsuarioConectado usuario = null;
-        if (sala != null) {
-            for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
-                if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort() && u.isAtivo()) {
-                    usuario = u;
-                    break;
-                }
-            }
-        }
-        if (usuario != null) {
-            for (Object o : sala.getInfoSalas().getJSONArray("opcoes")) {
-                if (received.getString("opcao").equals(new JSONObject(o.toString()).getString("opcao"))) {
-                    JSONObject votoUsuario = new JSONObject();
-                    votoUsuario.put("ra", usuario.getRa());
-                    votoUsuario.put("voto", received.getString("opcao"));
-                    boolean flag = false;
-                    for (JSONObject jo : sala.getVotos()) {
-                        if (jo.getString("ra").equals(votoUsuario.getString("ra"))) {
-                            flag = true;
-                            jo.remove("opcao");
-                            jo.put("opcao", received.getString("opcao"));
+                for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                    if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort() && u.isAtivo()) {
+                        for (Object o : s.getInfoSalas().getJSONArray("opcoes")) {
+                            if (received.getString("opcao").equals(new JSONObject(o.toString()).getString("nome"))) {
+                                System.out.println("opcao valida, computando voto...");
+                                JSONObject votoUsuario = new JSONObject();
+                                votoUsuario.put("ra", u.getRa());
+                                votoUsuario.put("voto", received.getString("opcao"));
+                                boolean flag = false;
+                                for (JSONObject jo : s.getVotos()) {
+                                    if (jo.getString("ra").equals(votoUsuario.getString("ra"))) {
+                                        System.out.println("voto atualizado");
+                                        flag = true;
+                                        jo.remove("opcao");
+                                        jo.put("opcao", received.getString("opcao"));
+                                    }
+                                }
+                                if (flag == false) {
+                                    System.out.println("novo voto computado");
+                                    s.addVoto(votoUsuario);
+                                }
+                                break;
+                            }
                         }
                     }
-                    if (flag == false) {
-                        sala.addVoto(votoUsuario);
-                    }
-                    break;
+                    //enviarStatusVotacao(u.getEndrecoIP(), u.getPorta(), s);
                 }
             }
         }
@@ -746,7 +746,9 @@ public class ServidorUDP {
     
     public static void iniciarPing(DatagramPacket request, JSONObject received) {
         for (ModelUsuarioConectado u : usuariosConectados) {
-            if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
+            System.out.println("checando usuarios...");
+            if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
+                System.out.println("setando usuario ativo...");
                 u.setAtivo(true);
                 break;
             }
@@ -762,6 +764,7 @@ public class ServidorUDP {
             if (sala != null) {
                 for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
                     if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
+                        System.out.println("setando usuario ativo na sala...");
                         u.setAtivo(true);
                     }
                 }
@@ -776,10 +779,12 @@ public class ServidorUDP {
                 while (true) {
                     try {
                         for (ModelUsuarioConectado u : usuariosConectados) {
+                            System.out.println("setando usuario como inativo...");
                             u.setAtivo(false);
                         }
                         for (ModelSalas s : infoSalas) {
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                                System.out.println("Setando usuario na sala como inativo...");
                                 u.setAtivo(false);
                             }
                         }
@@ -787,6 +792,7 @@ public class ServidorUDP {
                         for (ModelSalas s : infoSalas) {
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
                                 if (!u.isAtivo()) {
+                                    System.out.println("removendo usuario inativo da sala...");
                                     s.getUsuariosConectados().remove(u);
                                     atualizacaoUsuariosSala(s, u, false);
                                     break;
@@ -795,6 +801,7 @@ public class ServidorUDP {
                         }
                         for (ModelUsuarioConectado u : usuariosConectados) {
                             if (!u.isAtivo()) {
+                                System.out.println("removendo usuario inativo do servidor...");
                                 usuariosConectados.remove(u);
                                 updateModeloTabelaUsuarios();
                                 break;

@@ -25,8 +25,11 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -54,7 +57,9 @@ public class ModelCliente extends Thread {
     private String senha, login, username;
     private static ArrayList<JSONObject> infoSalas;
     private static ArrayList<JSONObject> usuariosConectados;
-    private static ArrayList<JSONObject> opcoesVotos;
+    private static ArrayList<JSONObject> votosCompletos;
+    private static ArrayList<String> opcoesVotos;
+    private static ArrayList<Integer> numeroVotos;
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
     private static DefaultTableModel modeloTabelaVotos;
@@ -65,6 +70,7 @@ public class ModelCliente extends Thread {
     public ModelCliente(ViewPrincipal view, ViewDiscussao discussao) {
         infoSalas = new ArrayList();
         usuariosConectados = new ArrayList();
+        votosCompletos = new ArrayList();
         GUICliente = view;
         viewdiscussao = discussao;
     }
@@ -164,7 +170,7 @@ public class ModelCliente extends Thread {
     }
     
     public void initModeloTabelaVotos() {
-        setModeloTabelaUsuarios(new javax.swing.table.DefaultTableModel(
+        setModeloTabelaVotos(new javax.swing.table.DefaultTableModel(
                 new Object[][]{}, new String[]{"Opção","Votos"}));
     }
     
@@ -206,7 +212,7 @@ public class ModelCliente extends Thread {
     }
     
     private static void updateModeloTabelaVotos() {
-        String rowData[] = new String[2];
+        Object rowData[] = new Object[2];
         int index = 0;
         if (modeloTabelaVotos.getRowCount() > 0) {
             for (int i = modeloTabelaVotos.getRowCount() - 1; i > -1; i--) {
@@ -214,9 +220,9 @@ public class ModelCliente extends Thread {
             }
         }
 
-        while (index < opcoesVotos.size()) {
-            rowData[0] = "teste";
-            rowData[1] = "teste";//usuariosConectados.get(index).getString("ra");
+        while (index < votosCompletos.size()) {
+            rowData[0] = votosCompletos.get(index).getString("nome");
+            rowData[1] = votosCompletos.get(index).getInt("votos");
             modeloTabelaVotos.addRow(rowData);
             index++;
         }
@@ -394,6 +400,26 @@ public class ModelCliente extends Thread {
         DatagramPacket msgCriarSala = new DatagramPacket(buffer, buffer.length, host, porta);
         try {
             socketCliente.send(msgCriarSala);
+            System.out.println("Mensagem enviada: " + JSONSala);
+        } catch (IOException ex) {
+            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void votar(int opcao){
+        JSONObject JSONVoto = new JSONObject();
+        JSONVoto.put("tipo",15);
+        JSONVoto.put("sala",id_Sala);
+        JSONVoto.put("opcao",opcoesVotos.get(opcao));
+        
+        byte[] buffer = new byte[1024];
+        buffer = JSONVoto.toString().getBytes();
+        
+        DatagramPacket msgVoto = new DatagramPacket(buffer, buffer.length, host, porta);
+        try {
+            socketCliente.send(msgVoto);
+            System.out.println("Mensagem enviada: " + JSONVoto);
+            viewdiscussao.atualizarVoto(opcoesVotos.get(opcao));
         } catch (IOException ex) {
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -449,27 +475,56 @@ public class ModelCliente extends Thread {
         viewdiscussao.atualizarListaUsers(modeloTabelaUsuarios);
     }
     
+    public static Set<String> getAllKeys(JSONObject json) {
+        return getAllKeys(json, new HashSet<>());
+    }
+
+    public static Set<String> getAllKeys(JSONArray arr) {
+        return getAllKeys(arr, new HashSet<>());
+    }
+
+    private static Set<String> getAllKeys(JSONArray arr, Set<String> keys) {
+        for (int i = 0; i < arr.length(); i++) {
+            Object obj = arr.get(i);
+            if (obj instanceof JSONObject) keys.addAll(getAllKeys(arr.getJSONObject(i)));
+            if (obj instanceof JSONArray) keys.addAll(getAllKeys(arr.getJSONArray(i)));
+        }
+
+        return keys;
+    }
+
+    private static Set<String> getAllKeys(JSONObject json, Set<String> keys) {
+        for (String key : json.keySet()) {
+            Object obj = json.get(key);
+            if (obj instanceof JSONObject) keys.addAll(getAllKeys(json.getJSONObject(key)));
+            if (obj instanceof JSONArray) keys.addAll(getAllKeys(json.getJSONArray(key)));
+        }
+
+        keys.addAll(json.keySet());
+        return keys;
+    }
+    
     private void receberVotacao(JSONObject votacao){
-        JSONArray opcoes = votacao.getJSONArray("resultados");
-        JSONObject newOpcoes = new JSONObject(opcoes);
+        JSONArray resultados = votacao.getJSONArray("resultados");
+        Set<String>keys = new HashSet<>();    
+
+        keys = getAllKeys(resultados);
+        opcoesVotos = new ArrayList<String>(keys);
         
-        Iterator keysToCopyIterator = newOpcoes.keys();
-        List<String> keysList = new ArrayList<String>();
-        while(keysToCopyIterator.hasNext()) {
-            String key = (String) keysToCopyIterator.next();
-            keysList.add(key);
-        }
-      
-        for(int i = 0; i < keysList.size(); i++){
+        for (int i = 0; i < opcoesVotos.size(); i++) {
             JSONObject atual = new JSONObject();
-            String nome = keysList.get(i);
-            atual.put("nome", nome);
-            atual.put("votos", opcoes.getInt(i));
-            System.out.println(atual);
+            JSONObject aux = resultados.getJSONObject(i);
+            String s = opcoesVotos.get(i);
+            atual.put("nome",s);
+            atual.put("votos",aux.getInt(s));
+            votosCompletos.add(atual);
+            //System.out.println(opcoesVotos.get(i) + atual.toString());
         }
         
-        //updateModeloTabelaVotos();
-        //viewdiscussao.atualizarListaVotos(modeloTabelaVotos);
+        //System.out.println(votosCompletos.toString());
+ 
+        updateModeloTabelaVotos();
+        viewdiscussao.atualizarListaVotos(modeloTabelaVotos);
     }
     
     private void atualizarUsers(JSONObject user){
