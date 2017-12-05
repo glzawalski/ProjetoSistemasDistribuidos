@@ -508,18 +508,29 @@ public class ModelCliente extends Thread {
         JSONArray resultados = votacao.getJSONArray("resultados");
         Set<String>keys = new HashSet<>();    
 
-        keys = getAllKeys(resultados);
-        opcoesVotos = new ArrayList<String>(keys);
+        //keys = getAllKeys(resultados);
+        //opcoesVotos = new ArrayList<String>(keys);
         
-        for (int i = 0; i < opcoesVotos.size(); i++) {
+        for(int i = 0; i < resultados.length(); i++){
+            JSONObject target = resultados.getJSONObject(i);
+            keys = getAllKeys(target);
+            opcoesVotos = new ArrayList<>(keys);
             JSONObject atual = new JSONObject();
-            JSONObject aux = resultados.getJSONObject(i);
-            String s = opcoesVotos.get(i);
+            String s = opcoesVotos.get(0);
             atual.put("nome",s);
-            atual.put("votos",aux.getInt(s));
+            atual.put("votos",target.get(s));
             votosCompletos.add(atual);
-            //System.out.println(opcoesVotos.get(i) + atual.toString());
         }
+        
+        //for (int i = 0; i < opcoesVotos.size(); i++) {
+            //JSONObject atual = new JSONObject();
+            //JSONObject aux = resultados.getJSONObject(i);
+            //String s = opcoesVotos.get(i);
+            //atual.put("nome",s);
+            //atual.put("votos",aux.getInt(s));
+            //votosCompletos.add(atual);
+            //System.out.println(opcoesVotos.get(i) + atual.toString());
+        //}
         
         //System.out.println(votosCompletos.toString());
  
