@@ -1,6 +1,5 @@
 //bugs : broadcast de votos recebe duas vezes -> limpar buffer cliente
 //       falha na atualização de troca de votos
-//todo : salvar votos em arquivo
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -31,8 +30,6 @@ import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -157,7 +154,7 @@ public class ServidorUDP {
                 try {
                     socketServidor = new DatagramSocket(porta);
                 } catch (SocketException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha na porta do servidor");
                 }
                 if (socketServidor != null) {
                     GUIServidor.buttonConfirmar.setEnabled(false);
@@ -171,7 +168,7 @@ public class ServidorUDP {
                     try {
                         socketServidor.receive(request);
                     } catch (IOException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Falha no recebimento de pacotes");
                     }
                     String received = new String(request.getData(),0,request.getLength());
                     JSONObject JSONReceived = new JSONObject(received);
@@ -217,7 +214,7 @@ public class ServidorUDP {
             socketServidor.send(reply);
             System.out.println("mensagem enviada: " + JSONErro);
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de envio de mensagem");
         }
     }
     
@@ -243,9 +240,9 @@ public class ServidorUDP {
                 line = bufferedReader.readLine();
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha ao encontrar arquivo de mensagens");
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de escrita de mensagens");
         }
     }
     
@@ -292,9 +289,9 @@ public class ServidorUDP {
             saida.write(buffer.toString());
             saida.flush();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha ao encontrar arquivo de mensagens");
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de escrita de mensagens");
         }
     }
     
@@ -349,9 +346,9 @@ public class ServidorUDP {
             bufferedReader.close();         
         }
         catch (FileNotFoundException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha ao encontrar arquivo de mensagens");
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de escrita de mensagens");
         }
     }
     
@@ -370,7 +367,7 @@ public class ServidorUDP {
                         socketServidor.send(reply);
                         System.out.println("mensagem enviada: " + informacoes);
                     } catch (IOException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Falha de escrita de mensagens");
                     }
                 }
             }
@@ -389,7 +386,7 @@ public class ServidorUDP {
                     socketServidor.send(reply);
                     System.out.println("mensagem enviada: " + salaEspecifica);
                 } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de escrita de mensagens");
                 }
                 break;
             }
@@ -411,6 +408,7 @@ public class ServidorUDP {
         received.put("status", true);
         salvarSalaArquivo(received);
         criarArquivoSala(infoSalas.size());
+        criarArquivoVotos(infoSalas.size());
         ModelSalas novaSala = new ModelSalas();
         novaSala.setInfoSalas(received);
         infoSalas.add(novaSala);
@@ -475,7 +473,7 @@ public class ServidorUDP {
                     socketServidor.send(reply);
                     System.out.println("informacoes enviadas: " + histSala);
                 } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de envio de datagrama");
                 }
                 enviarStatusVotacao(request.getAddress(), request.getPort(), s);
                 streamMensagensSala(request, s.getMensagens());
@@ -521,7 +519,7 @@ public class ServidorUDP {
                 socketServidor.send(reply);
                 System.out.println("mensagem enviada: " + novoConectadoSala);
             } catch (IOException ex) {
-                Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("Falha de envio de datagrama");
             }
         }
     }
@@ -555,7 +553,7 @@ public class ServidorUDP {
             socketServidor.send(reply);
             System.out.println("status votacao enviada: " + votacao.toString());
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de envio de datagrama");
         }
     }
     
@@ -572,7 +570,7 @@ public class ServidorUDP {
                         socketServidor.send(reply);
                         System.out.println("mensagem de chat enviada: " + m);
                     } catch (IOException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Falha de envio de datagrama");
                     }
                 }
             }
@@ -591,7 +589,7 @@ public class ServidorUDP {
                     socketServidor.send(reply);
                     System.out.println("mensagem de chat enviada: " + m);
                 } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de envio de datagrama");
                 }
             }
         }.start();
@@ -622,7 +620,7 @@ public class ServidorUDP {
                                 socketServidor.send(reply);
                                 System.out.println("mensagem de chat enviada: " + received);
                             } catch (IOException ex) {
-                                Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                                System.out.println("Falha de envio de datagrama");
                             }
                         }
                     }
@@ -648,16 +646,27 @@ public class ServidorUDP {
                                     if (jo.getString("ra").equals(votoUsuario.getString("ra"))) {
                                         System.out.println("voto atualizado");
                                         flag = true;
+                                        substituirVotoArquivo(jo, votoUsuario, s.getInfoSalas().getInt("id"));
                                         jo.remove("opcao");
-                                        jo.put("opcao", received.getString("opcao"));
+                                        jo.put("opcao", votoUsuario.getString("voto"));
                                     }
                                 }
                                 if (flag == false) {
                                     System.out.println("novo voto computado");
                                     s.addVoto(votoUsuario);
+                                    salvarVotoSalaArquivo(s.getInfoSalas().getInt("id"), votoUsuario);
                                 }
                                 break;
                             }
+                        }
+                        byte[] buffer = new byte[1024];
+                        buffer = received.toString().getBytes();
+                        try {
+                            DatagramPacket ackVoto = new DatagramPacket(buffer, buffer.length, u.getEndrecoIP(), u.getPorta());
+                            socketServidor.send(ackVoto);
+                            System.out.println("resposta ack voto: " + received.toString());
+                        } catch (IOException ex) {
+                                System.out.println("Falha de envio de datagrama");
                         }
                     }
                     //enviarStatusVotacao(u.getEndrecoIP(), u.getPorta(), s);
@@ -673,13 +682,13 @@ public class ServidorUDP {
             saida.write(mensagem.toString() + "\n");
             saida.flush();
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de abertura de arquivo de mensagens");
         } finally {
             if (saida != null) {
                 try {
                     saida.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de fechamento de arquivo");
                 }
             }
         }
@@ -692,13 +701,13 @@ public class ServidorUDP {
             saida.write(sala.toString() + "\n");
             saida.flush();
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de abertura de arquivo de mensagens");
         } finally {
             if (saida != null) {
                 try {
                     saida.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de fechamento de arquivo");
                 }
             }
         }
@@ -709,7 +718,64 @@ public class ServidorUDP {
         try {
             Files.write(Paths.get("./salas/mensagens/" + Integer.toString(id)), data.getBytes());
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Falha de escrita de arquivo de salas");
+        }
+    }
+    
+    private static void criarArquivoVotos(int id) {
+        String data = "";
+        try {
+            Files.write(Paths.get("./salas/votos/" + Integer.toString(id)), data.getBytes());
+        } catch (IOException ex) {
+            System.out.println("Falha de escrita de arquivo de votos");
+        }
+    }
+    
+    private static void salvarVotoSalaArquivo(int id, JSONObject mensagem) {
+        BufferedWriter saida = null;
+        try {
+            saida = new BufferedWriter(new FileWriter("./salas/votos/" + id, true));
+            saida.write(mensagem.toString() + "\n");
+            saida.flush();
+        } catch (IOException ex) {
+            System.out.println("Falha de escrita de arquivo de salas");
+        } finally {
+            if (saida != null) {
+                try {
+                    saida.close();
+                } catch (IOException ex) {
+                    System.out.println("Falha de fechamento de arquivo");
+                }
+            }
+        }
+    }
+    
+    private static void substituirVotoArquivo(JSONObject votoAntigo, JSONObject votoNovo, int id) {
+        System.out.println("computando mudança de voto      " + votoAntigo.toString());
+        System.out.println(votoNovo.toString());
+        String line;
+        StringBuilder buffer = new StringBuilder();
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("./salas/votos/" + id));
+            line = bufferedReader.readLine();
+            while(line != null){
+                System.out.println("lendo votos antigos     " + line);
+                if (line.equals(votoAntigo.toString())) {
+                    System.out.println("voto a ser mudado encontrado");
+                    buffer.append(votoNovo.toString().concat("\n"));
+                } else {
+                    buffer.append(line.concat("\n"));
+                }
+                line = bufferedReader.readLine();
+            }            
+            BufferedWriter saida = null;
+            saida = new BufferedWriter(new FileWriter("./salas/votos/" + id, false));
+            saida.write(buffer.toString());
+            saida.flush();
+        } catch (FileNotFoundException ex) {
+            System.out.println("Falha ao encontrar aquivo de votos");
+        } catch (IOException ex) {
+            System.out.println("Falha de escrita de arquivo");
         }
     }
     
@@ -719,7 +785,7 @@ public class ServidorUDP {
                 DatagramPacket atualizacaoListaSalas = new DatagramPacket(buffer, buffer.length, u.getEndrecoIP(), u.getPorta());
                 socketServidor.send(atualizacaoListaSalas);
             } catch (IOException ex) {
-                    Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Falha de envio de datagrama");
             }
         }
     }
@@ -740,7 +806,8 @@ public class ServidorUDP {
 
             return hexString.toString();
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            System.out.println("Falha de escrita de arquivo");
+            return null;
         }
     }
     
@@ -772,7 +839,6 @@ public class ServidorUDP {
         }
     }
     
-    //contagem de ping iniciada pelo servidor, precisa kickar usuarios inativos do servidor
     public static void contagemPing() {
         new Thread() {
             public void run() {
@@ -795,7 +861,6 @@ public class ServidorUDP {
                                     System.out.println("removendo usuario inativo da sala...");
                                     s.getUsuariosConectados().remove(u);
                                     atualizacaoUsuariosSala(s, u, false);
-                                    break;
                                 }
                             }
                         }
@@ -804,11 +869,10 @@ public class ServidorUDP {
                                 System.out.println("removendo usuario inativo do servidor...");
                                 usuariosConectados.remove(u);
                                 updateModeloTabelaUsuarios();
-                                break;
                             }
                         }
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Falha de thread de ping");
                     }
                 }
             }

@@ -10,3 +10,4 @@
 {"nome":"Diego Augusto","ra":"1695738","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
 {"nome":"Tiago Sanches","ra":"1687794","periodo": 8,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
 {"nome":"Fernando Favero","ra":"1547984","periodo": 5,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
+{"nome":"Teste","ra":"123","periodo": 0,"curso":"BCC","senha":"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"}
