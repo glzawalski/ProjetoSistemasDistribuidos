@@ -22,6 +22,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,13 +61,14 @@ public class ModelCliente extends Thread {
     private static ArrayList<JSONObject> usuariosConectados;
     private static ArrayList<JSONObject> votosCompletos;
     private static ArrayList<String> opcoesVotos;
-    private static ArrayList<Integer> numeroVotos;
+    private static ArrayList<Integer> idsMensagens;
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
     private static DefaultTableModel modeloTabelaVotos;
     private static ViewPrincipal GUICliente;
     private static ViewDiscussao viewdiscussao;
     private StyledDocument doc;
+    private boolean pingVar;
     
     public ModelCliente(ViewPrincipal view, ViewDiscussao discussao) {
         infoSalas = new ArrayList();
@@ -161,7 +164,7 @@ public class ModelCliente extends Thread {
     
     public void initModeloTabelaSalas() {
         setModeloTabelaSalas(new javax.swing.table.DefaultTableModel(
-                new Object[][]{}, new String[]{"ID Sala", "Criador", "Descrição", "Inicio", "Fim"}));
+                new Object[][]{}, new String[]{"ID Sala", "Criador", "Nome", "Descrição", "Inicio", "Fim"}));
     }
     
     public void initModeloTabelaUsuarios() {
@@ -175,7 +178,9 @@ public class ModelCliente extends Thread {
     }
     
     private static void updateModeloTabelaSalas() {
-        Object rowData[] = new Object[5];
+        Object rowData[] = new Object[6];
+        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        String stringdata;
         int index = 0;
         if (modeloTabelaSalas.getRowCount() > 0) {
             for (int i = modeloTabelaSalas.getRowCount() - 1; i > -1; i--) {
@@ -186,9 +191,16 @@ public class ModelCliente extends Thread {
         while (index < infoSalas.size()) {
             rowData[0] = infoSalas.get(index).getInt("id");
             rowData[1] = infoSalas.get(index).getString("criador");
-            rowData[2] = infoSalas.get(index).getString("descricao");
-            rowData[3] = infoSalas.get(index).getString("inicio");
-            rowData[4] = infoSalas.get(index).getString("fim");
+            rowData[2] = infoSalas.get(index).getString("nome");
+            rowData[3] = infoSalas.get(index).getString("descricao");
+            Long timestamp = Long.valueOf(infoSalas.get(index).getString("inicio"));
+            Date date = new Date(timestamp * 1000L);
+            stringdata = df.format(date);
+            rowData[4] = stringdata;
+            timestamp = Long.valueOf(infoSalas.get(index).getString("fim"));
+            date = new Date(timestamp * 1000L);
+            stringdata = df.format(date);
+            rowData[5] = stringdata;
             modeloTabelaSalas.addRow(rowData);
             index++;
         }
@@ -228,6 +240,10 @@ public class ModelCliente extends Thread {
         }
     }
     
+    private void setPingVar(boolean ping){
+        this.pingVar = ping;
+    }
+    
     public void setViewDiscussao(ViewDiscussao view){
         viewdiscussao = view;
     }
@@ -237,6 +253,7 @@ public class ModelCliente extends Thread {
         initModeloTabelaUsuarios();
         initModeloTabelaVotos();
         id_Sala = -1;
+        setPingVar(false);
         new Thread() {
             public void run() {
                 try {
@@ -256,18 +273,21 @@ public class ModelCliente extends Thread {
                         switch (tipo) {
                             case 1: loginErrado(); break;
                             case 2: loginSucedido(JSONReceived); break;
-                            case 4: receberSala(JSONReceived); break;
+                            case 4: receberSala(JSONReceived); checkSalas(); break;
                             case 8: receberDiscussao(JSONReceived); break;
                             case 9: receberVotacao(JSONReceived);break;
                             case 10: atualizarUsers(JSONReceived); break;
                             case 12: receberMensagem(JSONReceived); break;
+                            case 15: ackVoto(JSONReceived); break;
                             default: System.out.println("Mensagem com Id não identificado");break;
                         } 
                      }
-                } catch (SocketException ex){} catch (FileNotFoundException ex) {
-                    Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SocketException ex){
+                    System.out.println("Erro ao enviar mensagem");
+                } catch (FileNotFoundException ex) {
+                    System.out.println("Arquivo não encontrado");
                 } catch (IOException ex) {
-                    Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("Erro ao enviar mensagem");
                 }
             }
         }.start();
@@ -286,9 +306,9 @@ public class ModelCliente extends Thread {
                 countSalas = countSalas + 1;
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         } catch (IOException ex) {
-            Logger.getLogger(ServidorUDP.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         return countSalas;
     }
@@ -307,7 +327,7 @@ public class ModelCliente extends Thread {
         try {
             socketCliente.send(msgLogin);
         } catch (IOException ex) {
-            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         System.out.println("Mensagem enviada: " + JSONLogin);
     }
@@ -324,14 +344,18 @@ public class ModelCliente extends Thread {
         try{
             socketCliente.send(msgLogout);
         } catch(IOException ex){
-            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         System.out.println("Mensagem enviada: " + JSONLogout);
         
+        setPingVar(false);
         GUICliente.logout();
     }
     
     public void acessarSala(int idSala){
+        viewdiscussao.limparMensagens();
+        usuariosConectados.clear();
+        votosCompletos.clear();
         JSONObject JSONacessar = new JSONObject();
         JSONacessar.put("tipo",7);
         JSONacessar.put("id",idSala);
@@ -344,7 +368,7 @@ public class ModelCliente extends Thread {
         try {
             socketCliente.send(msgAcessar);
         } catch (IOException ex) {
-            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         System.out.println("Mensagem enviada: " + JSONacessar);
     }
@@ -352,7 +376,10 @@ public class ModelCliente extends Thread {
     public void sairSala(){
         viewdiscussao.limparMensagens();
         usuariosConectados.clear();
+        votosCompletos.clear();
         updateModeloTabelaUsuarios();
+        updateModeloTabelaVotos();
+        viewdiscussao.atualizarVoto("");
                 
         JSONObject JSONsair = new JSONObject();
         JSONsair.put("tipo",11);
@@ -365,7 +392,7 @@ public class ModelCliente extends Thread {
         try {
             socketCliente.send(msgSair);
         } catch (IOException ex) {
-            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         viewdiscussao.setVisible(false);
         System.out.println("Mensagem enviada: " + JSONsair);
@@ -386,7 +413,7 @@ public class ModelCliente extends Thread {
         try {
             socketCliente.send(msgmsg);
         } catch (IOException ex) {
-            Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
         System.out.println("Mensagem enviada: " + msg);
     }
@@ -402,26 +429,25 @@ public class ModelCliente extends Thread {
             socketCliente.send(msgCriarSala);
             System.out.println("Mensagem enviada: " + JSONSala);
         } catch (IOException ex) {
-            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
     }
     
-    public void votar(int opcao){
+    public void votar(String opcao){
         JSONObject JSONVoto = new JSONObject();
         JSONVoto.put("tipo",15);
         JSONVoto.put("sala",id_Sala);
-        JSONVoto.put("opcao",opcoesVotos.get(opcao));
+        JSONVoto.put("opcao",opcao);
         
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[2048];
         buffer = JSONVoto.toString().getBytes();
         
         DatagramPacket msgVoto = new DatagramPacket(buffer, buffer.length, host, porta);
         try {
             socketCliente.send(msgVoto);
             System.out.println("Mensagem enviada: " + JSONVoto);
-            viewdiscussao.atualizarVoto(opcoesVotos.get(opcao));
         } catch (IOException ex) {
-            Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Erro ao enviar mensagem");
         }
     }
     
@@ -429,7 +455,7 @@ public class ModelCliente extends Thread {
         new Thread(){
             @Override
             public void run(){
-                while(true){
+                while(pingVar){
                     JSONObject JSONPing = new JSONObject();
                     JSONPing.put("tipo", 16);
                     JSONPing.put("sala", id_Sala);
@@ -444,13 +470,87 @@ public class ModelCliente extends Thread {
                         System.out.println("Mensagem enviada: " + JSONPing);
                         Thread.sleep(9500);
                     } catch (IOException ex) {
-                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Erro ao enviar mensagem");
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(ModelCliente.class.getName()).log(Level.SEVERE, null, ex);
+                        System.out.println("Thread interrompida");
                     }
                 }
             }
         }.start();
+    }
+    
+    public void checkMsg(){
+        new Thread(){
+            @Override
+            public void run(){
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    System.out.println("Thread interrompida");
+                }
+                for(int i = 0; i < idsMensagens.size(); i++){
+                    if(idsMensagens.get(i) != i){
+                        pedirMensagem(i);
+                        break;
+                    }
+                }
+            }
+        }.start();
+    }
+    
+    public void checkSalas(){
+        new Thread(){
+            @Override
+            public void run(){
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException ex) {
+                    System.out.println("Thread interrompida");
+                }
+                for(int i = 0; i < qtdSalas; i++){
+                    JSONObject atual = infoSalas.get(i);
+                    if(atual.getInt("id") != i){
+                        pedirSala(i);
+                        break;
+                    }
+                }
+            }
+        }.start();
+    }
+    
+    private void pedirMensagem(int id){
+        JSONObject JSONPedir = new JSONObject();
+        JSONPedir.put("tipo",13);
+        JSONPedir.put("id_msg",id);
+        JSONPedir.put("id_sala",id_Sala);
+        
+        byte[] buffer = new byte[2048];
+        buffer = JSONPedir.toString().getBytes();
+        
+        DatagramPacket msgPedir = new DatagramPacket(buffer, buffer.length, host, porta);
+        try {
+            socketCliente.send(msgPedir);
+            System.out.println("Mensagem enviada: " + JSONPedir);
+        } catch (IOException ex) {
+            System.out.println("Erro ao enviar mensagem");
+        }
+    }
+    
+    private void pedirSala(int id){
+        JSONObject sala = new JSONObject();
+        sala.put("tipo",5);
+        sala.put("id_sala",id);
+        
+        byte[] buffer = new byte[2048];
+        buffer= sala.toString().getBytes();
+        
+        DatagramPacket msgSala = new DatagramPacket(buffer, buffer.length, host, porta);
+        try {
+            socketCliente.send(msgSala);
+            System.out.println("Mensagem enviada: " + sala);
+        } catch (IOException ex) {
+            System.out.println("Erro ao enviar mensagem");
+        }
     }
     
     private static void loginErrado(){
@@ -462,9 +562,11 @@ public class ModelCliente extends Thread {
         setUsername(login.getString("nome"));
         GUICliente.atualizarUser(username);
         ping();
+        setPingVar(true);
     }
     
     private void receberDiscussao(JSONObject discussao){
+        idsMensagens = new ArrayList<>();
         JSONArray users = discussao.getJSONArray("usuarios");
         for(int i = 0; i < users.length(); i++){
             JSONObject atual = users.getJSONObject(i);
@@ -505,6 +607,7 @@ public class ModelCliente extends Thread {
     }
     
     private void receberVotacao(JSONObject votacao){
+        votosCompletos.clear();
         JSONArray resultados = votacao.getJSONArray("resultados");
         Set<String>keys = new HashSet<>();    
 
@@ -569,6 +672,7 @@ public class ModelCliente extends Thread {
         Long timestamp = Long.valueOf(mensagem.getString("timestamp"));
         Date date = new Date(timestamp * 1000L);
         
+        checkMsg();
         viewdiscussao.atualizarMensagens(str, criador, date);
     }
     
@@ -578,6 +682,11 @@ public class ModelCliente extends Thread {
         qtdSalas = qtdSalas + 1;
         updateModeloTabelaSalas();
         GUICliente.atualizarListaSalas(modeloTabelaSalas);
+    }
+    
+    private void ackVoto(JSONObject ack){
+        String opcao = ack.getString("opcao");
+        viewdiscussao.atualizarVoto(opcao);
     }
     
     public static String sha256(String base) {

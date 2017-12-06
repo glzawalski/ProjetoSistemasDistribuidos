@@ -189,12 +189,14 @@ public class ViewDiscussao extends javax.swing.JFrame {
 
     private void jVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jVotarActionPerformed
         int pos = tabelaVotos.getSelectedRow();
-        if(pos >= 0) cliente.votar(pos);
-        //System.out.println(pos);
+        String s = tabelaVotos.getValueAt(pos, 0).toString();
+        if(s != null) cliente.votar(s);
+        System.out.println(s);
     }//GEN-LAST:event_jVotarActionPerformed
 
 public void atualizarVoto(String info){
-    jtextoVoto.setText("Você votou em: " + info);
+    if(info.equals("")) jtextoVoto.setText("Você ainda não votou");
+    else jtextoVoto.setText("Você votou em: " + info);
 }
     
 public void atualizarListaUsers(DefaultTableModel model){
