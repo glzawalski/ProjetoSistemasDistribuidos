@@ -19,9 +19,9 @@ public class ModelSalas {
     private ArrayList<ModelUsuarioConectado> usuariosConectados;
 
     public ModelSalas() {
-        mensagens = new ArrayList<>();
-        usuariosConectados = new ArrayList<>();
-        votos = new ArrayList<>();
+        mensagens = new ArrayList<>(); //arraylist que conterá as mensagens
+        usuariosConectados = new ArrayList<>(); //arraylist que conterá os usuarios conectados na sala, será um recorte da struct que o servidor usa
+        votos = new ArrayList<>(); //arraylist das opções de votos da sala
     }
     /**
      * @return the infoSalas
@@ -70,7 +70,7 @@ public class ModelSalas {
     }
     
     public void addUsuariosConectados(ModelUsuarioConectado novoUsuario) {
-        usuariosConectados.add(novoUsuario);
+        usuariosConectados.add(novoUsuario); //adiciona usuario novo
     }
 
     /**
@@ -88,6 +88,6 @@ public class ModelSalas {
     }
     
     public void addVoto(JSONObject voto) {
-        votos.add(voto);
+        votos.add(voto); //adiciona voto novo
     }
 }

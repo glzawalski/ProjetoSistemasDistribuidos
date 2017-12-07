@@ -172,7 +172,7 @@ public class ViewLogin extends JFrame {
         } catch (UnknownHostException ex) {
             Logger.getLogger(ViewLogin.class.getName()).log(Level.SEVERE, null, ex);
         }
-        cliente.setPorta(Integer.parseInt(TextFieldPort.getText()));
+        cliente.setPorta(Integer.parseInt(TextFieldPort.getText()));//seta dentro do cliente essas variaveis
         cliente.setSenha(TextFieldSenha.getText());
         cliente.setLogin(TextFieldLogin.getText());
         cliente.fazerLogin();
@@ -188,7 +188,8 @@ public class ViewLogin extends JFrame {
         TextFieldSenha.setText("");
     }//GEN-LAST:event_ButtonLoginLimparActionPerformed
 
-    private void beginStuff() throws UnknownHostException, InterruptedException{        
+    private void beginStuff() throws UnknownHostException, InterruptedException{ 
+        //instancia as outras interfaces e o controle do cliente, e faz com que todo mundo saiba sobre todo mundo
         viewprincipal = new ViewPrincipal();
         viewdiscussao = new ViewDiscussao();
         

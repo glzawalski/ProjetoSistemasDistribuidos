@@ -29,9 +29,9 @@ public class ViewDiscussao extends javax.swing.JFrame {
     private DefaultTableModel modeloTabelaUsuarios;
     private DefaultTableModel modeloTabelaVotos;
     private ModelCliente cliente;
-    private StyledDocument doc;
-    private Style style;
-    private DateFormat df;
+    private StyledDocument doc; //necessário pra mostrar o texto no jPane
+    private Style style; //necessário pra mostrar o texto no jPane
+    private DateFormat df; //formatação para a data
     
     public ViewDiscussao() {
         initComponents();
@@ -188,8 +188,8 @@ public class ViewDiscussao extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonEnviarActionPerformed
 
     private void jVotarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jVotarActionPerformed
-        int pos = tabelaVotos.getSelectedRow();
-        String s = tabelaVotos.getValueAt(pos, 0).toString();
+        int pos = tabelaVotos.getSelectedRow(); //pega a posição na tabela
+        String s = tabelaVotos.getValueAt(pos, 0).toString(); //pega a posição na tabela
         if(s != null) cliente.votar(s);
         System.out.println(s);
     }//GEN-LAST:event_jVotarActionPerformed
@@ -213,14 +213,14 @@ public void atualizarMensagens(String mensagem, String criador, Date time){
     String stringdata = df.format(time);
     String printThis = "(" + stringdata + ") " + criador + ":\n" + "                    " + mensagem + "\n";
     try {
-         doc.insertString(doc.getLength(), printThis + "\n", style);
+         doc.insertString(doc.getLength(), printThis + "\n", style);//adiciona a nova mensagem no final do documento do textPane
     } catch (BadLocationException ex) {
         Logger.getLogger(ViewDiscussao.class.getName()).log(Level.SEVERE, null, ex);
     }
     jMessagePane.setStyledDocument(doc);
 }
 
-public void limparMensagens(){
+public void limparMensagens(){//reseta o documento de mensagens
     doc = new DefaultStyledDocument();
 }
 

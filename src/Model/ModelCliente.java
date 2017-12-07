@@ -241,7 +241,7 @@ public class ModelCliente extends Thread {
     }
     
     private void setPingVar(boolean ping){
-        this.pingVar = ping;
+        this.pingVar = ping;//Variável que indica se devesse ou não mandar o ping
     }
     
     public void setViewDiscussao(ViewDiscussao view){
@@ -273,7 +273,7 @@ public class ModelCliente extends Thread {
                         switch (tipo) {
                             case 1: loginErrado(); break;
                             case 2: loginSucedido(JSONReceived); break;
-                            case 4: receberSala(JSONReceived); checkSalas(); break;
+                            case 4: receberSala(JSONReceived); checkSalas(); break;//coloquei o checkSalas() aqui por causa de problemas com statics e não statics
                             case 8: receberDiscussao(JSONReceived); break;
                             case 9: receberVotacao(JSONReceived);break;
                             case 10: atualizarUsers(JSONReceived); break;
@@ -352,7 +352,7 @@ public class ModelCliente extends Thread {
         GUICliente.logout();
     }
     
-    public void acessarSala(int idSala){
+    public void acessarSala(int idSala){//pede acesso a um sala
         viewdiscussao.limparMensagens();
         usuariosConectados.clear();
         votosCompletos.clear();
@@ -373,7 +373,7 @@ public class ModelCliente extends Thread {
         System.out.println("Mensagem enviada: " + JSONacessar);
     }
     
-    public void sairSala(){
+    public void sairSala(){//sai da sala
         viewdiscussao.limparMensagens();
         usuariosConectados.clear();
         votosCompletos.clear();
@@ -399,7 +399,7 @@ public class ModelCliente extends Thread {
         id_Sala = -1;
     }
     
-    public void enviarMsg(String mensagem){
+    public void enviarMsg(String mensagem){//envia mensagem no chat
         JSONObject msg = new JSONObject();
         msg.put("tipo", 14);
         msg.put("criador",username);
@@ -433,7 +433,7 @@ public class ModelCliente extends Thread {
         }
     }
     
-    public void votar(String opcao){
+    public void votar(String opcao){//enviar voto
         JSONObject JSONVoto = new JSONObject();
         JSONVoto.put("tipo",15);
         JSONVoto.put("sala",id_Sala);
@@ -451,7 +451,7 @@ public class ModelCliente extends Thread {
         }
     }
     
-    public void ping(){
+    public void ping(){//envia ping quando for necessário
         new Thread(){
             @Override
             public void run(){
@@ -479,7 +479,7 @@ public class ModelCliente extends Thread {
         }.start();
     }
     
-    public void checkMsg(){
+    public void checkMsg(){//tenta recuperar mensagens perdidas
         new Thread(){
             @Override
             public void run(){
@@ -498,7 +498,7 @@ public class ModelCliente extends Thread {
         }.start();
     }
     
-    public void checkSalas(){
+    public void checkSalas(){//tenta recuperar salas perdidas
         new Thread(){
             @Override
             public void run(){
@@ -518,7 +518,7 @@ public class ModelCliente extends Thread {
         }.start();
     }
     
-    private void pedirMensagem(int id){
+    private void pedirMensagem(int id){//pede mensagem especifica
         JSONObject JSONPedir = new JSONObject();
         JSONPedir.put("tipo",13);
         JSONPedir.put("id_msg",id);
@@ -536,7 +536,7 @@ public class ModelCliente extends Thread {
         }
     }
     
-    private void pedirSala(int id){
+    private void pedirSala(int id){//pede sala especifica
         JSONObject sala = new JSONObject();
         sala.put("tipo",5);
         sala.put("id_sala",id);
@@ -560,8 +560,8 @@ public class ModelCliente extends Thread {
     private void loginSucedido(JSONObject login){
         JOptionPane.showMessageDialog(null, login, "Login Sucedido", JOptionPane.INFORMATION_MESSAGE);
         setUsername(login.getString("nome"));
-        GUICliente.atualizarUser(username);
-        ping();
+        GUICliente.atualizarUser(username);//atualiza o nome na tela principal
+        ping();//ativa o ping
         setPingVar(true);
     }
     
@@ -577,6 +577,7 @@ public class ModelCliente extends Thread {
         viewdiscussao.atualizarListaUsers(modeloTabelaUsuarios);
     }
     
+    //funçoes para pegar as keys (opções de voto) do JSON
     public static Set<String> getAllKeys(JSONObject json) {
         return getAllKeys(json, new HashSet<>());
     }
@@ -615,14 +616,14 @@ public class ModelCliente extends Thread {
         //opcoesVotos = new ArrayList<String>(keys);
         
         for(int i = 0; i < resultados.length(); i++){
-            JSONObject target = resultados.getJSONObject(i);
+            JSONObject target = resultados.getJSONObject(i);//pega as keys, uma a uma, e as adiciona nos devidos lugares
             keys = getAllKeys(target);
             opcoesVotos = new ArrayList<>(keys);
             JSONObject atual = new JSONObject();
             String s = opcoesVotos.get(0);
             atual.put("nome",s);
             atual.put("votos",target.get(s));
-            votosCompletos.add(atual);
+            votosCompletos.add(atual); //votosCompletos contém JSONs usados pra mostar as opções de voto na tela
         }
         
         //for (int i = 0; i < opcoesVotos.size(); i++) {
@@ -641,7 +642,7 @@ public class ModelCliente extends Thread {
         viewdiscussao.atualizarListaVotos(modeloTabelaVotos);
     }
     
-    private void atualizarUsers(JSONObject user){
+    private void atualizarUsers(JSONObject user){//adiciona ou remove um usuário
         Boolean opt = user.getBoolean("adicionar");
         
         if(opt){
@@ -666,7 +667,7 @@ public class ModelCliente extends Thread {
         updateModeloTabelaUsuarios();
     }
     
-    private void receberMensagem(JSONObject mensagem){
+    private void receberMensagem(JSONObject mensagem){//coloca uma mensagem na tela
         String str = mensagem.getString("mensagem");
         String criador = mensagem.getString("criador");
         Long timestamp = Long.valueOf(mensagem.getString("timestamp"));
@@ -676,7 +677,7 @@ public class ModelCliente extends Thread {
         viewdiscussao.atualizarMensagens(str, criador, date);
     }
     
-    private static void receberSala(JSONObject sala){
+    private static void receberSala(JSONObject sala){//recebe as salas
         sala.remove("tipo");
         infoSalas.add(sala);
         qtdSalas = qtdSalas + 1;
@@ -684,7 +685,7 @@ public class ModelCliente extends Thread {
         GUICliente.atualizarListaSalas(modeloTabelaSalas);
     }
     
-    private void ackVoto(JSONObject ack){
+    private void ackVoto(JSONObject ack){//ack do voto
         String opcao = ack.getString("opcao");
         viewdiscussao.atualizarVoto(opcao);
     }

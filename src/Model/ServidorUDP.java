@@ -41,14 +41,15 @@ import org.json.JSONObject;
 public class ServidorUDP {
     private static DatagramSocket socketServidor = null;
     private int porta;
-    private static ArrayList<ModelSalas> infoSalas;
-    private static ArrayList<ModelUsuarioConectado> usuariosConectados;
+    //dar uma olhada nas structs também seria interessante pra estudar
+    private static ArrayList<ModelSalas> infoSalas; //lista de structs que guardam informações da sala
+    private static ArrayList<ModelUsuarioConectado> usuariosConectados; //lista de structs que guardam informações do cliente logados no servidor
     private static DefaultTableModel modeloTabelaSalas;
     private static DefaultTableModel modeloTabelaUsuarios;
     
-    Runnable checagemSala = new Runnable() {
+    Runnable checagemSala = new Runnable() { //função que roda baseada na chamada de um executor
         public void run() {
-            threadChecagemSalas();
+            threadChecagemSalas(); //checagem se as salas foram encerradas ou não
         }
     };
 
@@ -57,7 +58,7 @@ public class ServidorUDP {
         usuariosConectados = new ArrayList();
         inicializarSalas();
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(checagemSala, 0, 1, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(checagemSala, 0, 1, TimeUnit.MINUTES); //executor que chama a checagem de validade da sala implementado ali em cima
         contagemPing();
     }
     
@@ -151,7 +152,7 @@ public class ServidorUDP {
         new Thread() {
             public void run() {
                 updateModeloTabelaSalas();
-                try {
+                try { //abertura do socket do servidor
                     socketServidor = new DatagramSocket(porta);
                 } catch (SocketException ex) {
                     System.out.println("Falha na porta do servidor");
@@ -163,7 +164,7 @@ public class ServidorUDP {
                 System.out.println("Servidor aberto em : " + socketServidor.getLocalPort());
                 System.out.println("Numero de salas abertas: " + infoSalas.size());
                 byte[] buffer = new byte[1024];
-                while (!socketServidor.isClosed()) {
+                while (!socketServidor.isClosed()) { //loop de recebimento de mensagens udp
                     DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                     try {
                         socketServidor.receive(request);
@@ -203,7 +204,7 @@ public class ServidorUDP {
         }.start();
     }
     
-    private void mensagemMalFormada(DatagramPacket request, JSONObject JSONReceived) {
+    private void mensagemMalFormada(DatagramPacket request, JSONObject JSONReceived) { //retorna a mensagem inteira de volta pra quem enviou
         JSONObject JSONErro = new JSONObject();
         JSONErro.put("pacote", JSONReceived.toString());
         JSONErro.put("tipo", -1);        
@@ -218,25 +219,25 @@ public class ServidorUDP {
         }
     }
     
-    private void inicializarSalas() {
+    private void inicializarSalas() { //varre o arquivo de salas para popular a lista com as informações
         String line;
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("./salas/salas"));
             line = bufferedReader.readLine();
-            while(line != null){
+            while(line != null){ //le cada linha do arquivo
                 ModelSalas novaSala = new ModelSalas();
                 JSONObject info = new JSONObject(line);
-                novaSala.setInfoSalas(info);
-                String arquivoMensagens = "./salas/mensagens/".concat(Integer.toString(info.getInt("id")));
+                novaSala.setInfoSalas(info); //adiciona as informações da sala encontradas no arquivo num struct
+                String arquivoMensagens = "./salas/mensagens/".concat(Integer.toString(info.getInt("id"))); //inicia leitura das mensagens da sala
                 BufferedReader bufferedReaderMsg = new BufferedReader(new FileReader(arquivoMensagens));
                 String mensagem = bufferedReaderMsg.readLine();
                 ArrayList<JSONObject> mensagens = new ArrayList<>();
-                while (mensagem != null) {
+                while (mensagem != null) { //le cada linha do arquivo de mensagens
                     mensagens.add(new JSONObject(mensagem));
                     mensagem = bufferedReaderMsg.readLine();
                 }
-                novaSala.setMensagens(mensagens);
-                infoSalas.add(novaSala);
+                novaSala.setMensagens(mensagens); //salva na struct a lista das mensagens
+                infoSalas.add(novaSala); //adiciona a struct na lista de salas
                 line = bufferedReader.readLine();
             }
         } catch (FileNotFoundException ex) {
@@ -246,19 +247,20 @@ public class ServidorUDP {
         }
     }
     
-    private static void threadChecagemSalas() {
+    private static void threadChecagemSalas() { //checa se as salas estão abertas ou não
         new Thread() {
             public void run() {
-                for (ModelSalas s : infoSalas) {
+                for (ModelSalas s : infoSalas) { //para cada uma das salas na lista de structs
                     if (Long.valueOf(s.getInfoSalas().getString("fim")) <= Instant.now().getEpochSecond() && s.getInfoSalas().getBoolean("status")) {
+                        //substitui no arquivo a linha que contem a sala que expirou pra uma sala encerrada
                         System.out.println("sala passou da data limite");
                         JSONObject fechamentoSala = new JSONObject(s.getInfoSalas().toString());
                         fechamentoSala.remove("status");
                         fechamentoSala.put("status", false);
-                        substituirSalaArquivo(s.getInfoSalas(), fechamentoSala);
+                        substituirSalaArquivo(s.getInfoSalas(), fechamentoSala); //função que faz a troca da linha do arquivo
                         s.setInfoSalas(fechamentoSala);
                         for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
-                            enviarStatusVotacao(u.getEndrecoIP(), u.getPorta(), s);
+                            enviarStatusVotacao(u.getEndrecoIP(), u.getPorta(), s); //envia o resultado da votação quando acaba
                         }
                     }
                 }
@@ -266,7 +268,7 @@ public class ServidorUDP {
         }.start();
     }
     
-    private static void substituirSalaArquivo(JSONObject salaAberta, JSONObject salaFechada) {
+    private static void substituirSalaArquivo(JSONObject salaAberta, JSONObject salaFechada) { //abre o arquivo de salas e substitui a salaAberta pela salaFechada
         System.out.println("fechando sala expirada      " + salaAberta.toString());
         System.out.println(salaFechada.toString());
         String line;
@@ -274,7 +276,7 @@ public class ServidorUDP {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("./salas/salas"));
             line = bufferedReader.readLine();
-            while(line != null){
+            while(line != null){ //le arquivo, escreve a mesma coisa do arquivo caso não tenha expirado ou substitui caso tenha
                 System.out.println("lendo salas abertas     " + line);
                 if (line.equals(salaAberta.toString())) {
                     System.out.println("sala a ser fechada encontrada");
@@ -286,7 +288,7 @@ public class ServidorUDP {
             }            
             BufferedWriter saida = null;
             saida = new BufferedWriter(new FileWriter("./salas/salas", false));
-            saida.write(buffer.toString());
+            saida.write(buffer.toString()); //escreve o buffer no arquivo de salas
             saida.flush();
         } catch (FileNotFoundException ex) {
             System.out.println("Falha ao encontrar arquivo de mensagens");
@@ -295,18 +297,18 @@ public class ServidorUDP {
         }
     }
     
-    private static void checarLogin(DatagramPacket request, JSONObject received) {
+    private static void checarLogin(DatagramPacket request, JSONObject received) { //checagem de login
         String fileName = "loginhash.txt";
         String line;
         try {
             FileReader fileReader = new FileReader(fileName);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             boolean flagEncontrado = false;
-            while((line = bufferedReader.readLine()) != null) {
+            while((line = bufferedReader.readLine()) != null) { //le cada linha do arquivo de login
                 JSONObject user = new JSONObject(line);
-                if (user.getString("ra").equals(received.getString("ra"))) {
+                if (user.getString("ra").equals(received.getString("ra"))) { //marca como encontrado caso ache o ra
                     flagEncontrado = true; 
-                    if (user.getString("senha").equals(received.getString("senha"))) {
+                    if (user.getString("senha").equals(received.getString("senha"))) { //caso ache a senha retorna sucesso
                         byte[] buffer = new byte[1024];
                         JSONObject JSONRespostaLoginSucedido = new JSONObject();
                         JSONRespostaLoginSucedido.put("tipo", 2);
@@ -320,9 +322,9 @@ public class ServidorUDP {
                         novoUsuario.setAtivo(true);
                         usuariosConectados.add(novoUsuario);
                         updateModeloTabelaUsuarios();
-                        streamSalas(request.getAddress(), request.getPort());
+                        streamSalas(request.getAddress(), request.getPort()); //envia a lista de salas pro novo login
                         break;
-                    } else {
+                    } else { // envia falha caso senha não bata
                         byte[] buffer = new byte[1024];
                         JSONObject JSONRespostaLoginFalho = new JSONObject();
                         JSONRespostaLoginFalho.put("tipo", 1);
@@ -334,7 +336,7 @@ public class ServidorUDP {
                     }
                 }
             }
-            if (flagEncontrado == false) {
+            if (flagEncontrado == false) { // foi preciso colocar um flag pois seria enviado erro a cada ra encontrado que não fosse o requisitado ou que não batesse a senha
                 byte[] buffer = new byte[1024];
                 JSONObject JSONRespostaLoginErro = new JSONObject();
                 JSONRespostaLoginErro.put("tipo", 1);
@@ -352,11 +354,11 @@ public class ServidorUDP {
         }
     }
     
-    private static void streamSalas(InetAddress address, int port) {
+    private static void streamSalas(InetAddress address, int port) { //faz a leitura da struct de salas e envia todas para o cliente que logou com sucesso
         new Thread() {
             public void run() {
                 byte[] buffer = new byte[1024];
-                for (ModelSalas s : infoSalas) {
+                for (ModelSalas s : infoSalas) { //faz o envio individual para cada sala da lista de structs
                     JSONObject informacoes = s.getInfoSalas();
                     informacoes.put("tipo", 4);
                     informacoes.put("tamanho", infoSalas.size());
@@ -374,7 +376,7 @@ public class ServidorUDP {
         }.start();
     }
     
-    private static void pedidoSalaEspecifica(DatagramPacket request, JSONObject received) {
+    private static void pedidoSalaEspecifica(DatagramPacket request, JSONObject received) { //faz a varredura da lista de salas e envia a do id requisitado
         for (ModelSalas s : infoSalas) {
             if (s.getInfoSalas().getInt("id") == received.getInt("id")) {
                 JSONObject salaEspecifica = new JSONObject(s.getInfoSalas());
@@ -393,11 +395,11 @@ public class ServidorUDP {
         }
     }
     
-    private static void criarSala(DatagramPacket request, JSONObject received) {
+    private static void criarSala(DatagramPacket request, JSONObject received) { //usa o próprio json recebido para colocar as informações da sala no arquivo e na struct
         received.remove("tipo");
-        received.put("id", infoSalas.size());
+        received.put("id", infoSalas.size()); //coloca uma id baseada no numero de salas
         String criador = null;
-        for (ModelUsuarioConectado u : usuariosConectados) {
+        for (ModelUsuarioConectado u : usuariosConectados) { //encontra o usuario que enviou a requisição e coloca o nome dele nas informações da sala
             if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                 criador = u.getNome();
             }
@@ -406,22 +408,22 @@ public class ServidorUDP {
         received.put("criador", criador);
         received.put("inicio", Long.toString(Instant.now().getEpochSecond()));
         received.put("status", true);
-        salvarSalaArquivo(received);
-        criarArquivoSala(infoSalas.size());
-        criarArquivoVotos(infoSalas.size());
+        salvarSalaArquivo(received); //salva no arquivo
+        criarArquivoSala(infoSalas.size()); //cria arquivo de mensagens da sala
+        criarArquivoVotos(infoSalas.size()); //criar arquivo de votos da sala
         ModelSalas novaSala = new ModelSalas();
         novaSala.setInfoSalas(received);
-        infoSalas.add(novaSala);
-        received.put("tamanho", infoSalas.size());
+        infoSalas.add(novaSala); //salva sala na lista de structs
+        received.put("tamanho", infoSalas.size()); //adiciona informações do protocolo para enviar pros clientes a nova sala
         received.put("tipo", 4);
         byte[] buffer = new byte[1024];
         buffer = received.toString().getBytes();
-        broadcast(buffer);
+        broadcast(buffer); //envia para todos os conectados no servidor a sala nova
         System.out.println("mensagem enviada: " + received);
         updateModeloTabelaSalas();
     }
     
-    public void logoutServidor(DatagramPacket request, JSONObject received) {
+    public void logoutServidor(DatagramPacket request, JSONObject received) { //varre a lista de usuarios até encontrar o que requisitou e o tira da lista de conectados
         Iterator<ModelUsuarioConectado> iterator = usuariosConectados.iterator();
         ModelUsuarioConectado u = null;
         System.out.println("procurando cliente logout");
@@ -440,14 +442,14 @@ public class ServidorUDP {
     public void acessoSala(DatagramPacket request, JSONObject received) {
         Iterator<ModelSalas> iterator = infoSalas.iterator();
         System.out.println("procurando sala");
-        while (iterator.hasNext()) {
+        while (iterator.hasNext()) { //procura em todas as salas a que possui o id requisitado
             ModelSalas s = iterator.next();
             if (s.getInfoSalas().getInt("id") == received.getInt("id")) {
                 System.out.println("sala encontrada, enviando informações da sala...");
-                for (ModelUsuarioConectado u : usuariosConectados) {
+                for (ModelUsuarioConectado u : usuariosConectados) { //busca na lista de usuarios conectados ao servidor quem fez a requisição
                     if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                         u.setAtivo(true);
-                        atualizacaoUsuariosSala(s, u, true);
+                        atualizacaoUsuariosSala(s, u, true); //atualiza para todos os conectados na sala da entrada do novo cliente
                         System.out.println("            usuario adicionado");
                         s.addUsuariosConectados(u);
                         break;
@@ -457,7 +459,8 @@ public class ServidorUDP {
                 histSala.put("tipo", 8);
                 histSala.put("tamanho", s.getMensagens().size());
                 ArrayList<JSONObject> usuariosSala = new ArrayList<>();
-                for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
+                for (ModelUsuarioConectado u : s.getUsuariosConectados()) { 
+                    //busca todos os usuarios conectados e ativos na sala pra enviar pro cliente que pediu acesso a lista de cliente conectados
                     if (u.isAtivo()) {
                         JSONObject uc = new JSONObject();
                         uc.put("nome", u.getNome());
@@ -468,6 +471,7 @@ public class ServidorUDP {
                 histSala.put("usuarios", usuariosSala);
                 byte[] buffer = new byte[1024];
                 buffer = histSala.toString().getBytes();
+                //envia historico e lista de cliente pro usuario novo conectado
                 try {
                     DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                     socketServidor.send(reply);
@@ -475,15 +479,15 @@ public class ServidorUDP {
                 } catch (IOException ex) {
                     System.out.println("Falha de envio de datagrama");
                 }
-                enviarStatusVotacao(request.getAddress(), request.getPort(), s);
-                streamMensagensSala(request, s.getMensagens());
+                enviarStatusVotacao(request.getAddress(), request.getPort(), s); //envia status votação pro cliente novo
+                streamMensagensSala(request, s.getMensagens()); //envia todas as mensagens da sala pro cliente novo
             }
         }
     }
     
     private void logoutSala(DatagramPacket request) {
         boolean flagUsuario = false;
-        for (ModelSalas s : infoSalas) {
+        for (ModelSalas s : infoSalas) { //busca em todas as salas qual delas o usuario que mandou a requisição se encontra e remove ele da lista
             if (!flagUsuario) {
                 System.out.println("            procurando sala...");
                 for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
@@ -493,7 +497,7 @@ public class ServidorUDP {
                         System.out.println("                    usuario encontrado...");
                         s.getUsuariosConectados().remove(u);
                         System.out.println("                    usuario removido...");
-                        atualizacaoUsuariosSala(s, u, false);
+                        atualizacaoUsuariosSala(s, u, false); //atualiza todos os outros da sala da saída do cliente
                         break;
                     }
                 }
@@ -504,10 +508,11 @@ public class ServidorUDP {
     }
     
     private static void atualizacaoUsuariosSala(ModelSalas s, ModelUsuarioConectado novoAcesso, boolean adicionar) {
+        //para todos os cliente conectados na sala, manda uma mensagem com adicionar/remover o usuario novoAcesso
         System.out.println("                        atualizando lista de usuarios da sala...");
         JSONObject novoConectadoSala = new JSONObject();
         novoConectadoSala.put("tipo", 10);
-        novoConectadoSala.put("adicionar", adicionar);
+        novoConectadoSala.put("adicionar", adicionar); //pode ser true ou false
         novoConectadoSala.put("nome", novoAcesso.getNome());
         novoConectadoSala.put("ra", novoAcesso.getRa());
         byte[] buffer = new byte[1024];
@@ -530,10 +535,11 @@ public class ServidorUDP {
         if (s.getInfoSalas().getBoolean("status")) {
             votacao.put("acabou", false);
         } else {
-            votacao.put("acabou", true);
+            votacao.put("acabou", true); //envia o status da votação mesmo se for false pois estava confuso essa parte do protocolo
         }
         JSONArray opcoes = new JSONArray();
         for (Object o : s.getInfoSalas().getJSONArray("opcoes")) {
+            //busca na struct os nomes das opções de voto e usa como key para a quantidade de votos na opção
             String nomeOpcao = new JSONObject(o.toString()).getString("nome");
             int qtdVotos = 0;
             for (JSONObject jo : s.getVotos()) {
@@ -548,6 +554,7 @@ public class ServidorUDP {
         votacao.put("resultados", opcoes);
         byte[] buffer = new byte[1024];
         buffer = votacao.toString().getBytes();
+        //envia resultado como array de json
         try {
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length, address, port);
             socketServidor.send(reply);
@@ -558,9 +565,9 @@ public class ServidorUDP {
     }
     
     private void streamMensagensSala(DatagramPacket request, ArrayList<JSONObject> mensagens) {
-        new Thread() {
+        new Thread() { //cria nova thread para não ocupar demais o servidor
             public void run() {
-                for (JSONObject m : mensagens) {
+                for (JSONObject m : mensagens) { //percorre a lista de json de parametro e envia com o tipo e tamanho
                     m.put("tipo", 12);
                     m.put("tamanho", mensagens.size());
                     byte[] buffer = new byte[1024];
@@ -578,12 +585,13 @@ public class ServidorUDP {
     }
     
     private void pedidoMensagemEspecifica(DatagramPacket request, JSONObject received) {
-        new Thread() {
+        new Thread() { //cria nova thread para não sobrecarregar o servidor
             public void run() {
-                ModelSalas sala = infoSalas.get(received.getInt("id_sala"));
-                JSONObject m = new JSONObject(sala.getMensagens().get(received.getInt("id_msg")).toString());
+                ModelSalas sala = infoSalas.get(received.getInt("id_sala")); //busca sala do id
+                JSONObject m = new JSONObject(sala.getMensagens().get(received.getInt("id_msg")).toString()); //busca mensagem do id
                 byte[] buffer = new byte[1024];
                 buffer = m.toString().getBytes();
+                //envia a mensagem específica
                 try {
                     DatagramPacket reply = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
                     socketServidor.send(reply);
@@ -597,11 +605,11 @@ public class ServidorUDP {
     
     private void mensagemChatServidor(DatagramPacket request, JSONObject received) {
         ModelUsuarioConectado remetenteMensagem = null;
-        for (ModelUsuarioConectado u : usuariosConectados) {
+        for (ModelUsuarioConectado u : usuariosConectados) { //varre os usuarios conectados no servidor
             if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                 System.out.println("remetente encontrado na lista de conectados...");
                 remetenteMensagem = u;
-                for (ModelSalas s : infoSalas) {
+                for (ModelSalas s : infoSalas) { //varre as salas procurando pela que contém o usuario que enviou a mensagem
                     System.out.println("procurando sala");
                     if (s.getUsuariosConectados().contains(remetenteMensagem)) {
                         System.out.println("sala encontrada re-enviando mensagem chat");
@@ -610,11 +618,12 @@ public class ServidorUDP {
                         received.put("timestamp", Long.toString(Instant.now().getEpochSecond()));
                         s.addMensagens(received);
                         salvarMensagemSalaArquivo(s.getInfoSalas().getInt("id"), received);
+                        //adiciona informações das mensagens que o servidor precisa
                         received.put("tipo", 12);
                         received.put("tamanho", s.getMensagens().size());
                         byte[] buffer = new byte[1024];
                         buffer = received.toString().getBytes();
-                        for (ModelUsuarioConectado uc : s.getUsuariosConectados()) {
+                        for (ModelUsuarioConectado uc : s.getUsuariosConectados()) { //reenvia para todos os clientes da sala
                             try {
                                 DatagramPacket reply = new DatagramPacket(buffer, buffer.length, uc.getEndrecoIP(), uc.getPorta());
                                 socketServidor.send(reply);
@@ -631,11 +640,11 @@ public class ServidorUDP {
     }
     
     private static void computarVoto(DatagramPacket request, JSONObject received) {
-        for (ModelSalas s : infoSalas) {
-            if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
-                for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
-                    if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort() && u.isAtivo()) {
-                        for (Object o : s.getInfoSalas().getJSONArray("opcoes")) {
+        for (ModelSalas s : infoSalas) { //varre lista de salas
+            if (s.getInfoSalas().getInt("id") == received.getInt("sala")) { //encontra sala do id
+                for (ModelUsuarioConectado u : s.getUsuariosConectados()) { //varre lista de usuarios na sala
+                    if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort() && u.isAtivo()) { //encontra usuario da requisição
+                        for (Object o : s.getInfoSalas().getJSONArray("opcoes")) { //varre opções de votação
                             if (received.getString("opcao").equals(new JSONObject(o.toString()).getString("nome"))) {
                                 System.out.println("opcao valida, computando voto...");
                                 JSONObject votoUsuario = new JSONObject();
@@ -645,7 +654,7 @@ public class ServidorUDP {
                                 for (JSONObject jo : s.getVotos()) {
                                     if (jo.getString("ra").equals(votoUsuario.getString("ra"))) {
                                         System.out.println("voto atualizado");
-                                        flag = true;
+                                        flag = true; //atualiza o voto caso já tenha um com o ra da requisição
                                         substituirVotoArquivo(jo, votoUsuario, s.getInfoSalas().getInt("id"));
                                         jo.remove("opcao");
                                         jo.put("opcao", votoUsuario.getString("voto"));
@@ -653,7 +662,7 @@ public class ServidorUDP {
                                 }
                                 if (flag == false) {
                                     System.out.println("novo voto computado");
-                                    s.addVoto(votoUsuario);
+                                    s.addVoto(votoUsuario); //adiciona voto novo caso seja a primeira vez que vota
                                     salvarVotoSalaArquivo(s.getInfoSalas().getInt("id"), votoUsuario);
                                 }
                                 break;
@@ -675,7 +684,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void salvarMensagemSalaArquivo(int id, JSONObject mensagem) {
+    private static void salvarMensagemSalaArquivo(int id, JSONObject mensagem) { //escreve as mensagens enviadas pelo servidor no arquivo de mensagens
         BufferedWriter saida = null;
         try {
             saida = new BufferedWriter(new FileWriter("./salas/mensagens/" + id, true));
@@ -694,7 +703,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void salvarSalaArquivo(JSONObject sala) {
+    private static void salvarSalaArquivo(JSONObject sala) { //salva as informações da sala no arquivo de salas
         BufferedWriter saida = null;
         try {
             saida = new BufferedWriter(new FileWriter("./salas/salas", true));
@@ -713,7 +722,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void criarArquivoSala(int id) {
+    private static void criarArquivoSala(int id) { //cria arquivo de mensagens da nova sala criada, devo ter errado na nomenclatura na hora de programar
         String data = "";
         try {
             Files.write(Paths.get("./salas/mensagens/" + Integer.toString(id)), data.getBytes());
@@ -722,7 +731,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void criarArquivoVotos(int id) {
+    private static void criarArquivoVotos(int id) { //cria arquivo de votos da nova sala criada
         String data = "";
         try {
             Files.write(Paths.get("./salas/votos/" + Integer.toString(id)), data.getBytes());
@@ -731,7 +740,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void salvarVotoSalaArquivo(int id, JSONObject mensagem) {
+    private static void salvarVotoSalaArquivo(int id, JSONObject mensagem) { //salva os votos no arquivo de votos
         BufferedWriter saida = null;
         try {
             saida = new BufferedWriter(new FileWriter("./salas/votos/" + id, true));
@@ -750,7 +759,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void substituirVotoArquivo(JSONObject votoAntigo, JSONObject votoNovo, int id) {
+    private static void substituirVotoArquivo(JSONObject votoAntigo, JSONObject votoNovo, int id) { //substitui o voto no arquivo, mesmo das salas porém para os votos
         System.out.println("computando mudança de voto      " + votoAntigo.toString());
         System.out.println(votoNovo.toString());
         String line;
@@ -779,7 +788,7 @@ public class ServidorUDP {
         }
     }
     
-    private static void broadcast(byte[] buffer) {
+    private static void broadcast(byte[] buffer) { //broadcast para todos os clientes conectados no servidor
         for (ModelUsuarioConectado u : usuariosConectados) {
             try {
                 DatagramPacket atualizacaoListaSalas = new DatagramPacket(buffer, buffer.length, u.getEndrecoIP(), u.getPorta());
@@ -790,7 +799,7 @@ public class ServidorUDP {
         }
     }
     
-    public static String sha256(String base) {
+    public static String sha256(String base) { //criptografia sha256
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(base.getBytes("UTF-8"));
@@ -811,25 +820,25 @@ public class ServidorUDP {
         }
     }
     
-    public static void iniciarPing(DatagramPacket request, JSONObject received) {
-        for (ModelUsuarioConectado u : usuariosConectados) {
+    public static void iniciarPing(DatagramPacket request, JSONObject received) { //função para setar o ping dos clientes que enviam como positivo
+        for (ModelUsuarioConectado u : usuariosConectados) { //percorre lista procurando o cliente que enviou o ping
             System.out.println("checando usuarios...");
             if (u.getEndrecoIP().equals(request.getAddress()) && u.getPorta() == request.getPort()) {
                 System.out.println("setando usuario ativo...");
-                u.setAtivo(true);
+                u.setAtivo(true); //seta como ativo
                 break;
             }
         }
-        if (received.getInt("sala") != -1) {
+        if (received.getInt("sala") != -1) { //caso esteja em uma sala procura nas salas qual ele se encontra e seta como ativo também
             ModelSalas sala = null;
-            for (ModelSalas s : infoSalas) {
+            for (ModelSalas s : infoSalas) { //encontra a sala 
                 if (s.getInfoSalas().getInt("id") == received.getInt("sala")) {
                     sala = s;
                     break;
                 }
             }
             if (sala != null) {
-                for (ModelUsuarioConectado u : sala.getUsuariosConectados()) {
+                for (ModelUsuarioConectado u : sala.getUsuariosConectados()) { //varre os usuarios e seta como ativo quem enviou ping
                     if (u.getEndrecoIP().equals(request.getAddress().toString()) && u.getPorta() == request.getPort()) {
                         System.out.println("setando usuario ativo na sala...");
                         u.setAtivo(true);
@@ -840,31 +849,31 @@ public class ServidorUDP {
     }
     
     public static void contagemPing() {
-        new Thread() {
+        new Thread() { //nova thread
             public void run() {
                 while (true) {
                     try {
                         for (ModelUsuarioConectado u : usuariosConectados) {
                             System.out.println("setando usuario como inativo...");
-                            u.setAtivo(false);
+                            u.setAtivo(false); //seta todos do servidor como inativos
                         }
                         for (ModelSalas s : infoSalas) {
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
                                 System.out.println("Setando usuario na sala como inativo...");
-                                u.setAtivo(false);
+                                u.setAtivo(false); //seta todos de todas as sala como inativos
                             }
                         }
-                        Thread.sleep(30000);
-                        for (ModelSalas s : infoSalas) {
+                        Thread.sleep(30000); //espera 30 segundos
+                        for (ModelSalas s : infoSalas) { //varre as salas e remove todos os clientes inativos de cada sala
                             for (ModelUsuarioConectado u : s.getUsuariosConectados()) {
-                                if (!u.isAtivo()) {
+                                if (!u.isAtivo()) { 
                                     System.out.println("removendo usuario inativo da sala...");
                                     s.getUsuariosConectados().remove(u);
                                     atualizacaoUsuariosSala(s, u, false);
                                 }
                             }
                         }
-                        for (ModelUsuarioConectado u : usuariosConectados) {
+                        for (ModelUsuarioConectado u : usuariosConectados) { //remove todos os cliente inativos do servidor
                             if (!u.isAtivo()) {
                                 System.out.println("removendo usuario inativo do servidor...");
                                 usuariosConectados.remove(u);

@@ -159,7 +159,7 @@ public class ViewPrincipal extends JFrame {
         cliente.setIdSala(ID_sala);
     }//GEN-LAST:event_buttonAcessarSalaActionPerformed
     
-    public void atualizarUser(String username){
+    public void atualizarUser(String username){//mostra o nome do usuário na tela
         LabelUser.setText(username);
     }
 
@@ -168,7 +168,7 @@ public class ViewPrincipal extends JFrame {
         tabelaSalas.setModel(modeloTabelaSalas);
     }
     
-    public void logout(){
+    public void logout(){//desabilita todos os componentes
         buttonCriarSala.setEnabled(false);
         buttonLogout.setEnabled(false);
         tabelaSalas.setEnabled(false);

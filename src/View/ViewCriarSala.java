@@ -40,7 +40,7 @@ public class ViewCriarSala extends javax.swing.JFrame {
         initComponents();
         cliente = client;
         options = new ArrayList();
-        doc = new DefaultStyledDocument();
+        doc = new DefaultStyledDocument();//utilizado pra mostrar as opçoes adicionadas
         StyleContext context = new StyleContext();
         style = context.addStyle("test", null);
         StyleConstants.setForeground(style, Color.BLACK);
@@ -189,21 +189,21 @@ public class ViewCriarSala extends javax.swing.JFrame {
         sala.put("nome",textNomeSala.getText());
         sala.put("descricao", textDesc.getText());
         DateFormat dforiginal = new SimpleDateFormat("dd/MM/yyyy");
-        DateFormat dfnovo = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat dfnovo = new SimpleDateFormat("yyyy-MM-dd");//formatação da data
         Date data = new Date();
         String realDate = "";
         
         try {
             data = dforiginal.parse(jData.getText());
-            realDate = dfnovo.format(data) + "T23:59:59Z";
+            realDate = dfnovo.format(data) + "T23:59:59Z";//adiciona o resto necessário para permitir a conversão para unixtimestamp
         } catch (ParseException ex) {
             Logger.getLogger(ViewCriarSala.class.getName()).log(Level.SEVERE, null, ex);
         }
         Instant stringData = Instant.parse(realDate);
-        Long thing = stringData.toEpochMilli() / 1000;
+        Long thing = stringData.toEpochMilli() / 1000;//unix timestamp
         //System.out.println(realDate + "   " +thing.toString());
         sala.put("fim",thing.toString());
-        opcoes = new JSONArray(options);
+        opcoes = new JSONArray(options);//cria o array de opções
         sala.put("opcoes",opcoes);
         this.setVisible(false);
         //System.out.println(sala);
@@ -211,6 +211,7 @@ public class ViewCriarSala extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonCriarActionPerformed
 
     private void jaddoptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jaddoptActionPerformed
+        //adiciona as novas opções da sala
         String option = jOptVoto.getText();
         if(option.length() > 0){
             jOptVoto.setText("");
@@ -219,7 +220,7 @@ public class ViewCriarSala extends javax.swing.JFrame {
             options.add(newOpcao);
 
             try {
-                doc.insertString(doc.getLength(), option + "\n", style);
+                doc.insertString(doc.getLength(), option + "\n", style);//mostra a opção
             } catch (BadLocationException ex) {
                 Logger.getLogger(ViewCriarSala.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -228,7 +229,7 @@ public class ViewCriarSala extends javax.swing.JFrame {
     }//GEN-LAST:event_jaddoptActionPerformed
 
     private void buttonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelarActionPerformed
-        this.setVisible(false);
+        this.setVisible(false);// sai dessa tela
     }//GEN-LAST:event_buttonCancelarActionPerformed
 
     /**
